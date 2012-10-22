@@ -9,7 +9,7 @@ set -e
 
 # prepare for next automated steps
 make dist
-rpmbuild -bs --define '%_topdir '"`pwd`" --define '%_sourcedir %{_topdir}' rctc.spec
+rpmbuild -bs --define '%_topdir '"`pwd`" --define '%_sourcedir %{_topdir}' *.spec
 #Wrote: /tmp/rctc-repo/SRPMS/rctc-1.10-0.el6.src.rpm
 
 # prepare tmp and out dirs
@@ -21,8 +21,8 @@ mkdir -p repo/$MOCK_BUILDER
 
 # build
 
-/usr/bin/mock --resultdir "`pwd`/repo/$MOCK_BUILDER" SRPMS/*.src.rpm
+/usr/bin/mock --resultdir "repo/$MOCK_BUILDER" SRPMS/*.src.rpm
 
 # create repo files
-createrepo /repo/$MOCK_BUILDER
+createrepo repo/$MOCK_BUILDER
 

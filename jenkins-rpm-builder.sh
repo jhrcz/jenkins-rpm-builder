@@ -16,11 +16,17 @@ rm -rf tmp-tito/$MOCK_BUILDER
 mkdir -p repo/$MOCK_BUILDER
 mkdir -p tmp-tito/$MOCK_BUILDER
 
-[ -f Makefile ]  && BUILD_METHOD=make
-[ -d rel-eng ]   && BUILD_METHOD=tito
-[ -f .fpm.name ] && BUILD_METHOD=fpm
+[ -f Makefile ] \
+	&& BUILDER=make
+[ -d rel-eng ] \
+	&& BUILDER=tito
+[ -f .fpm.name ] \
+	&& BUILDER=fpm
+# make it possible to override builder detection
+[ -f .builder ] \
+	&& BUILDER=$(head -n 1 .builder)
 
-case BUILD_METHOD in
+case BUILDER in
 	make)
 		# prepare for next automated steps
 		make dist
@@ -41,7 +47,7 @@ case BUILD_METHOD in
 		find tmp-tito/$MOCK_BUILDER -maxdepth 1 -type f -exec mv '{}' repo/$MOCK_BUILDER \;
 		;;
 	fpm)
-		FPM_PARAMS=$(ls .fpm.* | grep -v .fpm.depends | while read param ; do param=${param##.fpm.} ; echo "--${param} \\\"$(head -n 1 .fpm.${param})\\\" " ; done)
+		FPM_PARAMS=$(ls .fpm.* | grep -v .fpm.depends | grep -v .builder | while read param ; do param=${param##.fpm.} ; echo "--${param} \\\"$(head -n 1 .fpm.${param})\\\" " ; done)
 		FPM_PARAMS_DEPENDS=$(while read dep ; do echo "--depends $dep " ; done < .fpm.depends )
 		eval fpm -s dir -x \'.fpm.*\' -t rpm -p repo/$MOCK_BUILDER $FPM_PARAMS $FPM_PARAMS_DEPENDS .
 	*)

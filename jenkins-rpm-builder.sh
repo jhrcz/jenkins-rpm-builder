@@ -47,9 +47,12 @@ case $BUILDER in
 		find tmp-tito/$MOCK_BUILDER -maxdepth 1 -type f -exec mv '{}' repo/$MOCK_BUILDER \;
 		;;
 	fpm)
-		FPM_PARAMS=$(ls .fpm.* | grep -v .fpm.depends | grep -v .builder | while read param ; do param=${param##.fpm.} ; echo "--${param} \\\"$(head -n 1 .fpm.${param})\\\" " ; done)
+		FPM_PARAMS=$(ls .fpm.* | grep -v .fpm.depends | grep -v .builder | while read param ; do param=${param##.fpm.} ; echo "--${param} '$(head -n 1 .fpm.${param})' " ; done)
 		FPM_PARAMS_DEPENDS=$(while read dep ; do echo "--depends $dep " ; done < .fpm.depends )
-		eval fpm -s dir -x \'.fpm.*\' -t rpm -p repo/$MOCK_BUILDER $FPM_PARAMS $FPM_PARAMS_DEPENDS .
+		rpmarch=noarch
+		#rpmarch=${MOCK_BUILDER##*-}
+		rpmout=$(head -n1 .fpm.name)-$(head -n1 .fpm.version)$([ -f .fpm.iteration ] && echo -n "-" && head -n1 .fpm.iteration)-${rpmarch}.rpm
+		eval fpm -s dir -x \'.fpm.*\' -t rpm -p repo/$MOCK_BUILDER/$rpmout $FPM_PARAMS $FPM_PARAMS_DEPENDS .
 		;;
 	*)
 		echo "Build method not detected or specified"

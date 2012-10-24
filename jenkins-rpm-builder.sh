@@ -26,7 +26,7 @@ mkdir -p tmp-tito/$MOCK_BUILDER
 [ -f .builder ] \
 	&& BUILDER=$(head -n 1 .builder)
 
-case BUILDER in
+case $BUILDER in
 	make)
 		# prepare for next automated steps
 		make dist
@@ -50,6 +50,7 @@ case BUILDER in
 		FPM_PARAMS=$(ls .fpm.* | grep -v .fpm.depends | grep -v .builder | while read param ; do param=${param##.fpm.} ; echo "--${param} \\\"$(head -n 1 .fpm.${param})\\\" " ; done)
 		FPM_PARAMS_DEPENDS=$(while read dep ; do echo "--depends $dep " ; done < .fpm.depends )
 		eval fpm -s dir -x \'.fpm.*\' -t rpm -p repo/$MOCK_BUILDER $FPM_PARAMS $FPM_PARAMS_DEPENDS .
+		;;
 	*)
 		echo "Build method not detected or specified"
 		exit 1

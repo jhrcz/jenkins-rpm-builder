@@ -51,7 +51,7 @@ case $BUILDER in
 		FPM_PARAMS_DEPENDS=$(while read dep ; do echo "--depends $dep " ; done < .fpm.depends )
 		rpmarch=noarch
 		#rpmarch=${MOCK_BUILDER##*-}
-		rpmout=$(head -n1 .fpm.name)-$(head -n1 .fpm.version)$([ -f .fpm.iteration ] && echo -n "-" && head -n1 .fpm.iteration)-${rpmarch}.rpm
+		rpmout=$(head -n1 .fpm.name)-$(head -n1 .fpm.version)$([ -f .fpm.iteration ] && echo -n "-" && head -n1 .fpm.iteration || true)-${rpmarch}.rpm
 		eval fpm -s dir -x \'.fpm.*\' -t rpm -p repo/$MOCK_BUILDER/$rpmout $FPM_PARAMS $FPM_PARAMS_DEPENDS .
 		;;
 	*)

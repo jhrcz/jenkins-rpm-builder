@@ -62,5 +62,14 @@ case $BUILDER in
 esac
 
 # create repo files
+n=$(pwd | cut -d / -f 6)
 createrepo repo/$MOCK_BUILDER
+echo "
+[local-devel-$n-$MOCK_BUILDER]
+name=CI build of $n on $MOCK_BUILDER builder
+enabled=1
+gpgcheck=0
+baseurl=http://one1-pkgbuild-jenkins-1.mit.etn.cz/repo/$n/$MOCK_BUILDER/
+proxy=_none_
+" > repo/$MOCK_BUILDER/local-devel-$n-$MOCK_BUILDER.repo
 

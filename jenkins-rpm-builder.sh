@@ -49,7 +49,7 @@ case $BUILDER in
 	fpm)
 		FPM_PARAMS=$(ls .fpm.* | grep -v .fpm.depends | grep -v .fpm.config-files| grep -v .builder | while read param ; do param=${param##.fpm.} ; echo "--${param} '$(head -n 1 .fpm.${param})' " ; done)
 		FPM_PARAMS_DEPENDS=$(while read dep ; do echo "--depends $dep " ; done < .fpm.depends )
-		FPM_PARAMS_CONFIG_FILES=$(while read conffile_wild ; do for conffile in ./$conffile_wild ; do echo "--config-files ${conffile#./} " ; done ; done < .fpm.config-files )
+		FPM_PARAMS_CONFIG_FILES=$(while read conffile_wild ; do for conffile in ./$conffile_wild ; do echo "--config-files ${conffile#./} " ; done ; done < .fpm.config-files || true )
 		rpmarch=noarch
 		#rpmarch=${MOCK_BUILDER##*-}
 		rpmout=$(head -n1 .fpm.name)-$(head -n1 .fpm.version)$([ -f .fpm.iteration ] && echo -n "-" && head -n1 .fpm.iteration || true)-${rpmarch}.rpm

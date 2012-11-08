@@ -63,7 +63,16 @@ esac
 
 # create repo files
 n=$(pwd | cut -d / -f 6)
-createrepo repo/$MOCK_BUILDER
+
+case "$MOCK_BUILDER" in
+	epel-5-x86_64)
+		createrepo -s sha repo/$MOCK_BUILDER
+		;;
+	*)
+		createrepo repo/$MOCK_BUILDER
+		;;
+esac
+
 echo "
 [local-devel-$n-$MOCK_BUILDER]
 name=CI build of $n on $MOCK_BUILDER builder

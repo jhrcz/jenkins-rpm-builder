@@ -3,6 +3,18 @@
 # crontab:
 # * * * * * /usr/bin/cronic /usr/local/sbin/update-repo-aliases.sh
 
+# httpd:
+#
+# RewriteEngine On
+# RewriteCond %{QUERY_STRING} ^/repo$
+# RewriteCond %{QUERY_STRING} ^/repo/$
+# RewriteRule . http://%{HTTP_HOST}/repo/index.html [R,L]
+# Include sites-includes/repo-aliases.conf
+# <Location /repo >
+#         Options +Indexes
+# </Location>
+
+
 set -x
 set -e
 

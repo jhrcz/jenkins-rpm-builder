@@ -31,6 +31,6 @@ do
 	echo "<li><a href=\"/repo/$i/\">$i</a></li>"
 done > /var/www/html/repo.html
 
-apachectl configtest 2>/dev/null
-apachectl graceful
+/usr/sbin/apachectl configtest 2>/dev/null
+/usr/sbin/apachectl graceful
 

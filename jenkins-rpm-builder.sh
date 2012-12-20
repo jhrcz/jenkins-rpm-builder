@@ -26,6 +26,18 @@ mkdir -p tmp-tito/$MOCK_BUILDER
 [ -f .builder ] \
 	&& BUILDER=$(head -n 1 .builder)
 
+case "$MOCK_BUILDER" in
+	epel-5-x86_64)
+		pkg_dist_suffix=".el5"
+		;;
+	epel-6-x86_64)
+		pkg_dist_suffix=".el6"
+		;;
+	*)
+		pkg_dist_suffix=""
+		;;
+esac
+
 case $BUILDER in
 	make)
 		# prepare for next automated steps
@@ -34,14 +46,14 @@ case $BUILDER in
 		#sample output: Wrote: /tmp/rctc-repo/SRPMS/rctc-1.10-0.el6.src.rpm
 
 		# build
-		/usr/bin/mock --resultdir "repo/$MOCK_BUILDER" SRPMS/*.src.rpm
+		/usr/bin/mock --resultdir "repo/$MOCK_BUILDER" -D "dist $pkg_dist_suffix" SRPMS/*.src.rpm
 		;;
 	tito)
 		# override path to use mock from /usr/bin and not /usr/sbin
 		export PATH=/usr/bin:$PATH
 
 		# move reulting packages in one directory for next steps
-		tito build --debug -o tmp-tito/$MOCK_BUILDER --builder mock --builder-arg mock=$MOCK_BUILDER --rpm
+		tito build --dist $pkg_dist_suffix --debug -o tmp-tito/$MOCK_BUILDER --builder mock --builder-arg mock=$MOCK_BUILDER --rpm
 
 		# create repository (all files from this repo should be saved as artifacts)
 		find tmp-tito/$MOCK_BUILDER -maxdepth 1 -type f -exec mv '{}' repo/$MOCK_BUILDER \;

@@ -42,6 +42,7 @@ case $BUILDER in
 	make)
 		# prepare for next automated steps
 		make dist
+		rm -f SRPMS/*.src.rpm
 		rpmbuild -bs --define '%_topdir '"`pwd`" --define '%_sourcedir %{_topdir}' *.spec
 		#sample output: Wrote: /tmp/rctc-repo/SRPMS/rctc-1.10-0.el6.src.rpm
 

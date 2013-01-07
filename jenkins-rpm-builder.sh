@@ -26,9 +26,13 @@ mkdir -p tmp-tito/$MOCK_BUILDER
 [ -f .builder ] \
 	&& BUILDER=$(head -n 1 .builder)
 
+mock_cmd='/usr/bin/mock'
 case "$MOCK_BUILDER" in
 	epel-5-x86_64)
 		pkg_dist_suffix=".el5"
+		mock_cmd="$mock_cmd -D \"_source_filedigest_algorithm 1\""
+		mock_cmd="$mock_cmd -D \"_binary_filedigest_algorithm 1\""
+		mock_cmd="$mock_cmd -D \"_binary_payload w9.gzdio\""
 		;;
 	epel-6-x86_64)
 		pkg_dist_suffix=".el6"
@@ -47,7 +51,7 @@ case $BUILDER in
 		#sample output: Wrote: /tmp/rctc-repo/SRPMS/rctc-1.10-0.el6.src.rpm
 
 		# build
-		/usr/bin/mock --resultdir "repo/$MOCK_BUILDER" -D "dist $pkg_dist_suffix" SRPMS/*.src.rpm
+		eval $mock_cmd --resultdir \"repo/$MOCK_BUILDER\" -D \"dist $pkg_dist_suffix\" SRPMS/*.src.rpm
 		;;
 	tito)
 		# override path to use mock from /usr/bin and not /usr/sbin

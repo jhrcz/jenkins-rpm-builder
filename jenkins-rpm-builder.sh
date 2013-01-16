@@ -7,6 +7,9 @@ set -e
 #[ -z "$MOCK_BUILDER" ] && MOCK_BUILDER="epel-6-x86_64" || true
 [ -n "$MOCK_BUILDER" ] 
 
+# enable building snapshot versions with customized version number
+[ -z "$SNAP_BUILD" ] && SNAP_BUILD="$2" || true
+
 # prepare for next automated steps
 # ... not needed, all in tito
 # prepare tmp and out dirs
@@ -41,6 +44,27 @@ case "$MOCK_BUILDER" in
 		pkg_dist_suffix=""
 		;;
 esac
+
+# when only spec template is prepared, then use it
+for specfilein in *.spec.in
+do
+	specfile=${specfilein%.in}
+	cp $specfilein $specfile
+
+	# for templated spec, replace version with version from tag
+	tagversion="$(git describe --tags --match 'release*')"
+	tagversion="${tagversion#release-}"
+	tagversion="${tagversion%%-*}"
+	sed -r -i -e 's/@@version@@/'"$tagversion"/g $specfile
+done
+
+# customizing version in spec for snapshot building
+# notice: rpm release number is appended after the version
+if [ "$SNAP_BUILD" = "snap" ]
+then
+	# current version format is: 2.0.99.snap.20130116.161144.git.041ef6c
+	sed -r -i -e '/^Version:/s/\s*$/'".99.snap.$(date +%F_%T | tr -d .:- | tr _ .).git.$(git log -1 --pretty=format:%h)/" *.spec
+fi
 
 case $BUILDER in
 	make)

@@ -122,7 +122,13 @@ case $BUILDER in
 	make)
 		# prepare for next automated steps
 		#make dist
-		git archive --format=tar --prefix="${name}-${versionmajor}/" -o ${name}-${versionmajor}.tar $tag
+		if [ "$SNAP_BUILD" = "snap" ]
+		then
+			sourcerevision="HEAD"
+		else
+			sourcerevision="$tag"
+		fi
+		git archive --format=tar --prefix="${name}-${versionmajor}/" -o ${name}-${versionmajor}.tar $sourcerevision
 		rm ${name}-${versionmajor}.tar.gz || true
 		gzip ${name}-${versionmajor}.tar
 

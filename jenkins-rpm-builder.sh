@@ -2,6 +2,9 @@
 set -x
 set -e
 
+# match nothing when glob does not matches any file
+shopt -s nullglob
+
 # used in in next step for mock and splitin el5 and el6 packages into subdirs 
 [ -z "$MOCK_BUILDER" ] && MOCK_BUILDER="$1" || true
 #[ -z "$MOCK_BUILDER" ] && MOCK_BUILDER="epel-6-x86_64" || true

@@ -62,6 +62,10 @@ then
 	tagversion="0.0"
 fi
 
+# reset workdir to get all files as are in git
+# removes local changes in snap spec files for example
+git reset --hard
+
 # by default building from HEAD of the branch
 # but for many cases it's better to use "tag" param
 # specialy when doing snap build for update possibility to next major version
@@ -69,10 +73,6 @@ if [ "$TAGGED_BUILD" = "tag" -a  "$SNAP_BUILD" = "" ]
 then
 	git checkout "$tag"
 fi
-
-# reset workdir to get all files as are in git
-# removes local changes in snap spec files for example
-git reset --hard
 
 # when only spec template is prepared, then use it
 for specfilein in *.spec.in

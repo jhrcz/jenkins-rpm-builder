@@ -88,8 +88,16 @@ if [ "$SNAP_BUILD" = "snap" ]
 then
 	# current version format is: 2.0.99.snap.20130116.161144.git.041ef6c
 	versionsnapsuffix="99.snap.$(date +%F_%T | tr -d .:- | tr _ .).git.$(git log -1 --pretty=format:%h)"
-	versionmajor="$tagversionmajor.$versionsnapsuffix"
-	sed -r -i -e '/^Version:/s/\s*$/'".$versionsnapsuffix/" *.spec
+	if [ "$TAGGED_BUILD" = "tag" ]
+	then
+		versionmajor="$tagversionmajor.$versionsnapsuffix"
+		# replace version with version based on previous tagged and snap suffix
+		sed -r -i -e 's/^Version:.*$/Version: '"${versionmajor}/" *.spec
+	else
+		versionmajor="$(awk -F: '/^Version:/{print $2}' < *.spec | awk '{print $1}').$versionsnapsuffix"
+		# append snap suffix to version
+		sed -r -i -e '/^Version:/s/\s*$/'".$versionsnapsuffix/" *.spec
+	fi
 fi
 
 # we need to know the package name for generating source tarball

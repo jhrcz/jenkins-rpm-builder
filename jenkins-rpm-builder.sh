@@ -48,6 +48,11 @@ case "$MOCK_BUILDER" in
 		;;
 esac
 
+# get the last version from vcs repo
+tagversion="$(git describe --tags --match 'release*')"
+tagversion="${tagversion#release-}"
+tagversion="${tagversion%%-*}"
+
 # when only spec template is prepared, then use it
 for specfilein in *.spec.in
 do
@@ -55,9 +60,6 @@ do
 	cp $specfilein $specfile
 
 	# for templated spec, replace version with version from tag
-	tagversion="$(git describe --tags --match 'release*')"
-	tagversion="${tagversion#release-}"
-	tagversion="${tagversion%%-*}"
 	sed -r -i -e 's/@@version@@/'"$tagversion"/g $specfile
 done
 

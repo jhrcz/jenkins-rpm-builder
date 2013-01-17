@@ -13,6 +13,9 @@ shopt -s nullglob
 # enable building snapshot versions with customized version number
 [ -z "$SNAP_BUILD" ] && SNAP_BUILD="$2" || true
 
+# enable possibilty to build lattest tagged or head vcs build
+[ -z "$TAGGED_BUILD" ] && TAGGED_BUILD="$3" || true
+
 # prepare for next automated steps
 # ... not needed, all in tito
 # prepare tmp and out dirs
@@ -49,9 +52,18 @@ case "$MOCK_BUILDER" in
 esac
 
 # get the last version from vcs repo
-tagversion="$(git describe --tags --match 'release*')"
-tagversion="${tagversion#release-}"
+tag="$(git describe --tags --match 'release*')"
+tagversion="${tag#release-}"
 tagversionmajor="${tagversion%%-*}"
+
+
+# by default building from HEAD of the branch
+# but for many cases it's better to use "tag" param
+# specialy when doing snap build for update possibility to next major version
+if [ "$TAGGED_BUILD" = "tag" ]
+then
+	git checkout "$tag"
+fi
 
 # when only spec template is prepared, then use it
 for specfilein in *.spec.in

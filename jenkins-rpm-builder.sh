@@ -113,6 +113,8 @@ then
 		# append snap suffix to version
 		sed -r -i -e '/^Version:/s/\s*$/'".$versionsnapsuffix/" *.spec
 	fi
+else
+	versionmajor="$(awk -F: '/^Version:/{print $2}' < *.spec | awk '{print $1}')"
 fi
 
 # we need to know the package name for generating source tarball

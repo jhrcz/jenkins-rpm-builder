@@ -56,6 +56,12 @@ tag="$(git describe --tags --match 'release*' --abbrev=0)"
 tagversion="${tag#release-}"
 tagversionmajor="${tagversion%%-*}"
 
+# be safe when no tag exists
+if [ -z "$tagversionmajor" ]
+then
+	tagversion="0.0"
+fi
+
 # by default building from HEAD of the branch
 # but for many cases it's better to use "tag" param
 # specialy when doing snap build for update possibility to next major version

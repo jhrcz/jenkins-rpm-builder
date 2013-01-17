@@ -52,15 +52,14 @@ case "$MOCK_BUILDER" in
 esac
 
 # get the last version from vcs repo
-tag="$(git describe --tags --match 'release*')"
+tag="$(git describe --tags --match 'release*' --abbrev=0)"
 tagversion="${tag#release-}"
 tagversionmajor="${tagversion%%-*}"
-
 
 # by default building from HEAD of the branch
 # but for many cases it's better to use "tag" param
 # specialy when doing snap build for update possibility to next major version
-if [ "$TAGGED_BUILD" = "tag" ]
+if [ "$TAGGED_BUILD" = "tag" -a  "$SNAP_BUILD" = "" ]
 then
 	git checkout "$tag"
 fi
@@ -79,18 +78,31 @@ do
 	sed -r -i -e 's/@@version@@/'"$tagversionmajor"/g $specfile
 done
 
+# by default all versions are based on tagged version
+# later this could be overriden when doing snap build
+version=${tagversion}
+
 # customizing version in spec for snapshot building
 # notice: rpm release number is appended after the version
 if [ "$SNAP_BUILD" = "snap" ]
 then
 	# current version format is: 2.0.99.snap.20130116.161144.git.041ef6c
-	sed -r -i -e '/^Version:/s/\s*$/'".99.snap.$(date +%F_%T | tr -d .:- | tr _ .).git.$(git log -1 --pretty=format:%h)/" *.spec
+	versionsnapsuffix="99.snap.$(date +%F_%T | tr -d .:- | tr _ .).git.$(git log -1 --pretty=format:%h)"
+	versionmajor="$tagversionmajor.$versionsnapsuffix"
+	sed -r -i -e '/^Version:/s/\s*$/'".$versionsnapsuffix/" *.spec
 fi
+
+# we need to know the package name for generating source tarball
+name="$(awk -F: '/^Name:/{print $2}' < *.spec | awk '{print $1}')"
 
 case $BUILDER in
 	make)
 		# prepare for next automated steps
-		make dist
+		#make dist
+		git archive --format=tar --prefix="${name}-${versionmajor}/" -o ${name}-${versionmajor}.tar $tag
+		rm ${name}-${versionmajor}.tar.gz || true
+		gzip ${name}-${versionmajor}.tar
+
 		rm -f SRPMS/*.src.rpm
 		rpmbuild -bs --define '%_topdir '"`pwd`" --define '%_sourcedir %{_topdir}' *.spec
 		#sample output: Wrote: /tmp/rctc-repo/SRPMS/rctc-1.10-0.el6.src.rpm

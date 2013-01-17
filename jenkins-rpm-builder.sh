@@ -92,8 +92,17 @@ version=${tagversion}
 # notice: rpm release number is appended after the version
 if [ "$SNAP_BUILD" = "snap" ]
 then
-	# current version format is: 2.0.99.snap.20130116.161144.git.041ef6c
-	versionsnapsuffix="99.snap.$(date +%F_%T | tr -d .:- | tr _ .).git.$(git log -1 --pretty=format:%h)"
+	# current version format is
+	# tagged build: 2.0.99.snap.20130116.161144.git.041ef6c
+	# head build:   2.0.00.snap.20130116.161144.git.041ef6c
+	versionsnapsuffix="snap.$(date +%F_%T | tr -d .:- | tr _ .).git.$(git log -1 --pretty=format:%h)"
+	if [ "$TAGGED_BUILD" = "tag" ]
+	then
+		versionsnapsuffix="99.$versionsnapsuffix"
+	else
+		versionsnapsuffix="00.$versionsnapsuffix"
+	fi
+
 	if [ "$TAGGED_BUILD" = "tag" ]
 	then
 		versionmajor="$tagversionmajor.$versionsnapsuffix"

@@ -65,6 +65,10 @@ then
 	git checkout "$tag"
 fi
 
+# reset workdir to get all files as are in git
+# removes local changes in snap spec files for example
+git reset --hard
+
 # when only spec template is prepared, then use it
 for specfilein in *.spec.in
 do

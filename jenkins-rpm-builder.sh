@@ -51,7 +51,7 @@ esac
 # get the last version from vcs repo
 tagversion="$(git describe --tags --match 'release*')"
 tagversion="${tagversion#release-}"
-tagversion="${tagversion%%-*}"
+tagversionmajor="${tagversion%%-*}"
 
 # when only spec template is prepared, then use it
 for specfilein in *.spec.in
@@ -60,7 +60,7 @@ do
 	cp $specfilein $specfile
 
 	# for templated spec, replace version with version from tag
-	sed -r -i -e 's/@@version@@/'"$tagversion"/g $specfile
+	sed -r -i -e 's/@@version@@/'"$tagversionmajor"/g $specfile
 done
 
 # customizing version in spec for snapshot building

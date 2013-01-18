@@ -23,13 +23,19 @@ GPG_KEY_EL5="ETN PKG BUILDER EL5 (package signing key)"
 # enable possibilty to sign resulting packages
 [ -z "$SIGN_PACKAGES" ] && SIGN_PACKAGES="$4" || true
 
+resultdir="repo/$MOCK_BUILDER"
+if [ "$SNAP_BUILD" = "snap" ]
+then
+	resultdir="repo/${MOCK_BUILDER}-snap"
+fi
+
 # prepare for next automated steps
 # ... not needed, all in tito
 # prepare tmp and out dirs
-rm -rf repo/$MOCK_BUILDER
+rm -rf $resultdir
 rm -rf tmp-tito/$MOCK_BUILDER
 
-mkdir -p repo/$MOCK_BUILDER
+mkdir -p $resultdir
 mkdir -p tmp-tito/$MOCK_BUILDER
 
 [ -f Makefile ] \
@@ -122,12 +128,6 @@ then
 	fi
 else
 	versionmajor="$(awk -F: '/^Version:/{print $2}' < *.spec | awk '{print $1}')"
-fi
-
-resultdir="repo/$MOCK_BUILDER"
-if [ "$SNAP_BUILD" = "snap" ]
-then
-	resultdir="repo/${MOCK_BUILDER}-snap"
 fi
 
 # we need to know the package name for generating source tarball

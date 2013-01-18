@@ -23,6 +23,12 @@ GPG_KEY_EL5="ETN PKG BUILDER EL5 (package signing key)"
 # enable possibilty to sign resulting packages
 [ -z "$SIGN_PACKAGES" ] && SIGN_PACKAGES="$4" || true
 
+# defaults when not defined
+[ -z "$MOCK_BUILDER" ] && MOCK_BUILDER="epel-6-x86_64" || true
+[ -z "$SNAP_BUILD" ] && SNAP_BUILD="nosnap" || true
+[ -z "$TAGGED_BUILD" ] && TAGGED_BUILD="notag" || true
+[ -z "$SIGN_PACKAGES" ] && SIGN_PACKAGES="sign" || true
+
 resultdir="repo/$MOCK_BUILDER"
 if [ "$SNAP_BUILD" = "snap" ]
 then

@@ -222,7 +222,7 @@ echo "
 name=CI build of $n on $MOCK_BUILDER builder
 enabled=1
 gpgcheck=0
-baseurl=${REPO_URL_PREFIX}/$n/$MOCK_BUILDER/
+baseurl=${REPO_URL_PREFIX}/$n/${resultdir#repo/}/
 proxy=_none_
-" > $resultdir/local-devel-$n-$MOCK_BUILDER.repo
+" > $resultdir/local-devel-$n-${resultdir#repo/}.repo
 

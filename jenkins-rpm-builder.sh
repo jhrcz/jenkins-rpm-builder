@@ -71,7 +71,7 @@ case "$MOCK_BUILDER" in
 esac
 
 # get the last version from vcs repo
-tag="$(git describe --tags --match 'release*' --abbrev=0)"
+tag="$(git describe --tags --match 'release*' --abbrev=0 || true)"
 tagversion="${tag#release-}"
 tagversionmajor="${tagversion%%-*}"
 

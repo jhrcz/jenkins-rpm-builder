@@ -5,6 +5,7 @@ set -e
 # match nothing when glob does not matches any file
 shopt -s nullglob
 
+REPO_URL_PREFIX="http://one1-pkgbuild-jenkins-1.mit.etn.cz/repo"
 GPG_KEY="ETN PKG BUILDER (package signing key)"
 GPG_KEY_EL5="ETN PKG BUILDER EL5 (package signing key)"
 
@@ -215,7 +216,7 @@ echo "
 name=CI build of $n on $MOCK_BUILDER builder
 enabled=1
 gpgcheck=0
-baseurl=http://one1-pkgbuild-jenkins-1.mit.etn.cz/repo/$n/$MOCK_BUILDER/
+baseurl=${REPO_URL_PREFIX}/$n/$MOCK_BUILDER/
 proxy=_none_
 " > repo/$MOCK_BUILDER/local-devel-$n-$MOCK_BUILDER.repo
 

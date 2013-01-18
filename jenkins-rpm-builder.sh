@@ -124,6 +124,12 @@ else
 	versionmajor="$(awk -F: '/^Version:/{print $2}' < *.spec | awk '{print $1}')"
 fi
 
+resultdir="repo/$MOCK_BUILDER"
+if [ "$SNAP_BUILD" = "snap" ]
+then
+	resultdir="repo/${MOCK_BUILDER}-snap"
+fi
+
 # we need to know the package name for generating source tarball
 name="$(awk -F: '/^Name:/{print $2}' < *.spec | awk '{print $1}')"
 
@@ -146,7 +152,7 @@ case $BUILDER in
 		#sample output: Wrote: /tmp/rctc-repo/SRPMS/rctc-1.10-0.el6.src.rpm
 
 		# build
-		eval $mock_cmd --resultdir \"repo/$MOCK_BUILDER\" -D \"dist $pkg_dist_suffix\" SRPMS/*.src.rpm
+		eval $mock_cmd --resultdir \"$resultdir\" -D \"dist $pkg_dist_suffix\" SRPMS/*.src.rpm
 		;;
 	tito)
 		# override path to use mock from /usr/bin and not /usr/sbin
@@ -156,7 +162,7 @@ case $BUILDER in
 		tito build --dist $pkg_dist_suffix --debug -o tmp-tito/$MOCK_BUILDER --builder mock --builder-arg mock=$MOCK_BUILDER --rpm
 
 		# create repository (all files from this repo should be saved as artifacts)
-		find tmp-tito/$MOCK_BUILDER -maxdepth 1 -type f -exec mv '{}' repo/$MOCK_BUILDER \;
+		find tmp-tito/$MOCK_BUILDER -maxdepth 1 -type f -exec mv '{}' $resultdir/ \;
 		;;
 	fpm)
 		FPM_PARAMS=$(ls .fpm.* | grep -v .fpm.depends | grep -v .fpm.config-files| grep -v .builder | while read param ; do param=${param##.fpm.} ; echo "--${param} '$(head -n 1 .fpm.${param})' " ; done)
@@ -165,7 +171,7 @@ case $BUILDER in
 		rpmarch=noarch
 		#rpmarch=${MOCK_BUILDER##*-}
 		rpmout=$(head -n1 .fpm.name)-$(head -n1 .fpm.version)$([ -f .fpm.iteration ] && echo -n "-" && head -n1 .fpm.iteration || true)-${rpmarch}.rpm
-		eval fpm -s dir -x \'.fpm.*\' -x repo -x \'tmp-*\' -x .git -t rpm -p repo/$MOCK_BUILDER/$rpmout $FPM_PARAMS $FPM_PARAMS_DEPENDS $FPM_PARAMS_CONFIG_FILES .
+		eval fpm -s dir -x \'.fpm.*\' -x repo -x \'tmp-*\' -x .git -t rpm -p $resultdir/$rpmout $FPM_PARAMS $FPM_PARAMS_DEPENDS $FPM_PARAMS_CONFIG_FILES .
 		;;
 	*)
 		echo "Build method not detected or specified"
@@ -196,7 +202,7 @@ if [ "$SIGN_PACKAGES" = "sign" ]
 			;;
 	esac
 
-	for package in repo/$MOCK_BUILDER/*.rpm
+	for package in $resultdir/*.rpm
 	do
 		eval $signcmd $package
 	done
@@ -204,10 +210,10 @@ fi
 
 case "$MOCK_BUILDER" in
 	epel-5-x86_64)
-		createrepo -s sha repo/$MOCK_BUILDER
+		createrepo -s sha $resultdir
 		;;
 	*)
-		createrepo repo/$MOCK_BUILDER
+		createrepo $resultdir
 		;;
 esac
 
@@ -218,5 +224,5 @@ enabled=1
 gpgcheck=0
 baseurl=${REPO_URL_PREFIX}/$n/$MOCK_BUILDER/
 proxy=_none_
-" > repo/$MOCK_BUILDER/local-devel-$n-$MOCK_BUILDER.repo
+" > $resultdir/local-devel-$n-$MOCK_BUILDER.repo
 

@@ -5,6 +5,9 @@ set -e
 # match nothing when glob does not matches any file
 shopt -s nullglob
 
+GPG_KEY="ETN PKG BUILDER (package signing key)"
+GPG_KEY_EL5="ETN PKG BUILDER EL5 (package signing key)"
+
 # used in in next step for mock and splitin el5 and el6 packages into subdirs 
 [ -z "$MOCK_BUILDER" ] && MOCK_BUILDER="$1" || true
 #[ -z "$MOCK_BUILDER" ] && MOCK_BUILDER="epel-6-x86_64" || true
@@ -15,6 +18,9 @@ shopt -s nullglob
 
 # enable possibilty to build lattest tagged or head vcs build
 [ -z "$TAGGED_BUILD" ] && TAGGED_BUILD="$3" || true
+
+# enable possibilty to sign resulting packages
+[ -z "$SIGN_PACKAGES" ] && SIGN_PACKAGES="$4" || true
 
 # prepare for next automated steps
 # ... not needed, all in tito
@@ -168,6 +174,32 @@ esac
 
 # create repo files
 n=$(pwd | cut -d / -f 6)
+
+# signing command requires user input, expect is required even when
+# the key is is without password
+if [ "$SIGN_PACKAGES" = "sign" ]
+	then
+	case "$MOCK_BUILDER" in
+		epel-5-x86_64)
+			signcmd="$(dirname $0)/rpm-sign.exp \
+				--define \"_signature gpg\" \
+				--define \"_gpg_name ${GPG_KEY_EL5}\" \
+				--define \"__gpg_sign_cmd %{__gpg} gpg --force-v3-sigs --digest-algo=sha1 --batch --no-verbose --no-armor --passphrase-fd 3 --no-secmem-warning -u '%{_gpg_name}' -sbo %{__signature_filename} %{__plaintext_filename}\" \
+				"
+			;;
+		*)
+			signcmd="$(dirname $0)/rpm-sign.exp \
+				--define \"_signature gpg\" \
+				--define \"_gpg_name ${GPG_KEY}\" \
+				"
+			;;
+	esac
+
+	for package in repo/$MOCK_BUILDER/*.rpm
+	do
+		eval $signcmd $package
+	done
+fi
 
 case "$MOCK_BUILDER" in
 	epel-5-x86_64)

@@ -21,7 +21,7 @@ advanced configuratin like matrix projects is supported. this enables building r
 usage
 -----
 
-define build by executable command
+in jenkins, define build by executable command
 
 	bash /opt/jenkins-rpm-builder.sh <epel-5-x86_64|epel-6-x86_64> <snap|nosnap> <tag|notag> <sign|nosign>
 
@@ -38,6 +38,6 @@ examples of snapshot versions depending on combination of params
 
 when using tag parameter and having .spec.in in repository source root, it is used and @@version@@ tag is replaced by current version
 
-
+wrapper could be used for building snapshot packages on packagers machine too. then not all the changes must be pushed to the upstream repo, they must be only localy commited.
 
 

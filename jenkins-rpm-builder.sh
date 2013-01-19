@@ -23,6 +23,12 @@ GPG_KEY_EL5="ETN PKG BUILDER EL5 (package signing key)"
 # enable possibilty to sign resulting packages
 [ -z "$SIGN_PACKAGES" ] && SIGN_PACKAGES="$4" || true
 
+# defaults when not defined
+[ -z "$MOCK_BUILDER" ] && MOCK_BUILDER="epel-6-x86_64" || true
+[ -z "$SNAP_BUILD" ] && SNAP_BUILD="nosnap" || true
+[ -z "$TAGGED_BUILD" ] && TAGGED_BUILD="notag" || true
+[ -z "$SIGN_PACKAGES" ] && SIGN_PACKAGES="sign" || true
+
 resultdir="repo/$MOCK_BUILDER"
 if [ "$SNAP_BUILD" = "snap" ]
 then
@@ -65,7 +71,7 @@ case "$MOCK_BUILDER" in
 esac
 
 # get the last version from vcs repo
-tag="$(git describe --tags --match 'release*' --abbrev=0)"
+tag="$(git describe --tags --match 'release*' --abbrev=0 || true)"
 tagversion="${tag#release-}"
 tagversionmajor="${tagversion%%-*}"
 
@@ -171,7 +177,7 @@ case $BUILDER in
 		rpmarch=noarch
 		#rpmarch=${MOCK_BUILDER##*-}
 		rpmout=$(head -n1 .fpm.name)-$(head -n1 .fpm.version)$([ -f .fpm.iteration ] && echo -n "-" && head -n1 .fpm.iteration || true)-${rpmarch}.rpm
-		eval fpm -s dir -x \'.fpm.*\' -x repo -x \'tmp-*\' -x .git -t rpm -p $resultdir/$rpmout $FPM_PARAMS $FPM_PARAMS_DEPENDS $FPM_PARAMS_CONFIG_FILES .
+		eval fpm -s dir -x \'.fpm.\*\' -x repo -x \'tmp-\*\' -x .git -t rpm -p $resultdir/$rpmout $FPM_PARAMS $FPM_PARAMS_DEPENDS $FPM_PARAMS_CONFIG_FILES .
 		;;
 	*)
 		echo "Build method not detected or specified"

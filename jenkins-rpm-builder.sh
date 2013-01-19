@@ -177,7 +177,7 @@ case $BUILDER in
 		rpmarch=noarch
 		#rpmarch=${MOCK_BUILDER##*-}
 		rpmout=$(head -n1 .fpm.name)-$(head -n1 .fpm.version)$([ -f .fpm.iteration ] && echo -n "-" && head -n1 .fpm.iteration || true)-${rpmarch}.rpm
-		eval fpm -s dir -x \'.fpm.*\' -x repo -x \'tmp-*\' -x .git -t rpm -p $resultdir/$rpmout $FPM_PARAMS $FPM_PARAMS_DEPENDS $FPM_PARAMS_CONFIG_FILES .
+		eval fpm -s dir -x \'.fpm.\*\' -x repo -x \'tmp-\*\' -x .git -t rpm -p $resultdir/$rpmout $FPM_PARAMS $FPM_PARAMS_DEPENDS $FPM_PARAMS_CONFIG_FILES .
 		;;
 	*)
 		echo "Build method not detected or specified"

@@ -9,6 +9,14 @@ shopt -s nullglob
 REPO_URL_PREFIX="http://reposerver/repo"
 GPG_KEY="GPG KEY FOR EL6 SIGNING"
 GPG_KEY_EL5="GPG KEY FOR EL5 SIGNING"
+MOCK_BUILDER_DEFAULT="epel-6-x86_64"
+
+SNAP_BUILD_DEFAULT="nosnap"
+TAGGED_BUILD_DEFAULT="notag"
+SIGN_PACKAGES_DEFAULT="sign"
+
+MOCK_BUILDER_EL6_DEFAULT=epel-6-x86_64
+MOCK_BUILDER_EL5_DEFAULT=epel-5-x86_64
 
 # source all possible conf file locations
 for conffile in /etc/jenkins-rpm-builder.conf $HOME/jenkins-rpm-builder.conf $(dirname $0)/jenkins-rpm-builder.conf
@@ -21,8 +29,6 @@ done
 
 # used in in next step for mock and splitin el5 and el6 packages into subdirs 
 [ -z "$MOCK_BUILDER" ] && MOCK_BUILDER="$1" || true
-#[ -z "$MOCK_BUILDER" ] && MOCK_BUILDER="epel-6-x86_64" || true
-[ -n "$MOCK_BUILDER" ] 
 
 # enable building snapshot versions with customized version number
 [ -z "$SNAP_BUILD" ] && SNAP_BUILD="$2" || true
@@ -34,10 +40,13 @@ done
 [ -z "$SIGN_PACKAGES" ] && SIGN_PACKAGES="$4" || true
 
 # defaults when not defined
-[ -z "$MOCK_BUILDER" ] && MOCK_BUILDER="epel-6-x86_64" || true
-[ -z "$SNAP_BUILD" ] && SNAP_BUILD="nosnap" || true
-[ -z "$TAGGED_BUILD" ] && TAGGED_BUILD="notag" || true
-[ -z "$SIGN_PACKAGES" ] && SIGN_PACKAGES="sign" || true
+[ -z "$MOCK_BUILDER" ] && MOCK_BUILDER="$MOCK_BUILDER_DEFAULT" || true
+[ -z "$SNAP_BUILD" ] && SNAP_BUILD="$SNAP_BUILD_DEFAULT" || true
+[ -z "$TAGGED_BUILD" ] && TAGGED_BUILD="$TAGGED_BUILD_DEFAULT" || true
+[ -z "$SIGN_PACKAGES" ] && SIGN_PACKAGES="$SIGN_PACKAGES_DEFAULT" || true
+
+[ -z "$MOCK_BUILDER_EL6" ] && SIGN_PACKAGES="$MOCK_BUILDER_EL6_DEFAULT" || true
+[ -z "$MOCK_BUILDER_EL5" ] && SIGN_PACKAGES="$MOCK_BUILDER_EL5_DEFAULT" || true
 
 resultdir="repo/$MOCK_BUILDER"
 if [ "$SNAP_BUILD" = "snap" ]
@@ -66,13 +75,13 @@ mkdir -p tmp-tito/$MOCK_BUILDER
 
 mock_cmd='/usr/bin/mock'
 case "$MOCK_BUILDER" in
-	epel-5-x86_64)
+	$MOCK_BUILDER_EL5)
 		pkg_dist_suffix=".el5"
 		mock_cmd="$mock_cmd -D \"_source_filedigest_algorithm 1\""
 		mock_cmd="$mock_cmd -D \"_binary_filedigest_algorithm 1\""
 		mock_cmd="$mock_cmd -D \"_binary_payload w9.gzdio\""
 		;;
-	epel-6-x86_64)
+	$MOCK_BUILDER_EL6)
 		pkg_dist_suffix=".el6"
 		;;
 	*)
@@ -203,7 +212,7 @@ n=$(pwd | cut -d / -f 6)
 if [ "$SIGN_PACKAGES" = "sign" ]
 	then
 	case "$MOCK_BUILDER" in
-		epel-5-x86_64)
+		$MOCK_BUILDER_EL5)
 			signcmd="$(dirname $0)/rpm-sign.exp \
 				--define \"_signature gpg\" \
 				--define \"_gpg_name ${GPG_KEY_EL5}\" \
@@ -225,7 +234,7 @@ if [ "$SIGN_PACKAGES" = "sign" ]
 fi
 
 case "$MOCK_BUILDER" in
-	epel-5-x86_64)
+	$MOCK_BUILDER_EL5)
 		createrepo -s sha $resultdir
 		;;
 	*)

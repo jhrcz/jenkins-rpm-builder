@@ -1,0 +1,10 @@
+#
+# jenkins-rpm-builder configuration
+#
+
+# url prefix used when generating repo files
+REPO_URL_PREFIX="http://reposerver/repo"
+
+# gpg key names for signing
+GPG_KEY="GPG KEY FOR EL6 SIGNING"
+GPG_KEY_EL5="GPG KEY FOR EL5 SIGNING"

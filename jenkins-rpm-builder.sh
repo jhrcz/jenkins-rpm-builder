@@ -5,9 +5,19 @@ set -e
 # match nothing when glob does not matches any file
 shopt -s nullglob
 
-REPO_URL_PREFIX="http://one1-pkgbuild-jenkins-1.mit.etn.cz/repo"
-GPG_KEY="ETN PKG BUILDER (package signing key)"
-GPG_KEY_EL5="ETN PKG BUILDER EL5 (package signing key)"
+# defaults
+REPO_URL_PREFIX="http://reposerver/repo"
+GPG_KEY="GPG KEY FOR EL6 SIGNING"
+GPG_KEY_EL5="GPG KEY FOR EL5 SIGNING"
+
+# source all possible conf file locations
+for conffile in /etc/jenkins-rpm-builder.conf $HOME/jenkins-rpm-builder.conf $(dirname $0)/jenkins-rpm-builder.conf
+do
+	if [ -f "$conffile" ]
+	then
+		source $conffile
+	fi
+done
 
 # used in in next step for mock and splitin el5 and el6 packages into subdirs 
 [ -z "$MOCK_BUILDER" ] && MOCK_BUILDER="$1" || true

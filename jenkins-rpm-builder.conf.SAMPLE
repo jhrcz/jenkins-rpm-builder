@@ -1,0 +1,20 @@
+#
+# jenkins-rpm-builder configuration
+#
+
+# url prefix used when generating repo files
+REPO_URL_PREFIX="http://reposerver/repo"
+
+# gpg key names for signing
+GPG_KEY="GPG KEY FOR EL6 SIGNING"
+GPG_KEY_EL5="GPG KEY FOR EL5 SIGNING"
+
+# default building params when running without params
+#MOCK_BUILDER_DEFAULT="epel-6-x86_64"
+#SNAP_BUILD_DEFAULT="nosnap"
+#TAGGED_BUILD_DEFAULT="notag"
+#SIGN_PACKAGES_DEFAULT="sign"
+
+# default mock builders
+#MOCK_BUILDER_EL6_DEFAULT="epel-6-x86_64"
+#MOCK_BUILDER_EL5_DEFAULT="epel-5-x86_64"

@@ -36,6 +36,11 @@ examples of snapshot versions depending on combination of params
   * **nosnap+notag**: etnpol-tomcat-7.0-7.0.35-0.el5.noarch.rpm
   * **nosnap+tag**: etnpol-tomcat-7.0-7.0.27-0.el6.noarch.rpm
 
+configuration file "jenkins-rpm-builder.conf" (for example gpg keys and default params when used without params) is searched in
+  * /etc/
+  * $HOME/
+  * main tool executable location
+
 when using tag parameter and having .spec.in in repository source root, it is used and @@version@@ tag is replaced by current version
 
 wrapper could be used for building snapshot packages on packagers machine too. then not all the changes must be pushed to the upstream repo, they must be only localy commited.

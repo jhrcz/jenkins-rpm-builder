@@ -163,6 +163,9 @@ fi
 # we need to know the package name for generating source tarball
 name="$(awk -F: '/^Name:/{print $2}' < *.spec | awk '{print $1}')"
 
+# clean mock environment before builds and tests
+mock -r ${MOCK_BUILDER} --clean
+
 case $BUILDER in
 	make)
 		# prepare for next automated steps
@@ -240,6 +243,7 @@ fi
 
 if [ "$TEST_PACKAGES" = "test" ]
 then
+	mock -r ${MOCK_BUILDER} --init
 	mock -r ${MOCK_BUILDER} --install $(GLOBIGNORE='*.src.rpm:*-debug*rpm' ; ls  repo/${MOCK_BUILDER}*/*.rpm)
 	mock -r ${MOCK_BUILDER} --copyin tests/ /builddir/build/tests/
 	mock -r ${MOCK_BUILDER} --shell "cd /builddir/build/tests && ./run.sh"

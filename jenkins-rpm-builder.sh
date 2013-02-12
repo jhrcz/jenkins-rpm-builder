@@ -211,7 +211,7 @@ case $BUILDER in
 			tito tag --keep-version --no-auto-changelog
 			
 			# move reulting packages in one directory for next steps
-			tito build --dist $pkg_dist_suffix --debug -o tmp-tito/$MOCK_BUILDER --builder mock --builder-arg mock=$MOCK_BUILDER --rpm
+			tito build --test --dist $pkg_dist_suffix --debug -o tmp-tito/$MOCK_BUILDER --builder mock --builder-arg mock=$MOCK_BUILDER --rpm
 
 			git checkout -- *.spec
 			git checkout $prevbranch

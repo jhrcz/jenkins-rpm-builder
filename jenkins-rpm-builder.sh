@@ -191,9 +191,37 @@ case $BUILDER in
 		# override path to use mock from /usr/bin and not /usr/sbin
 		export PATH=/usr/bin:$PATH
 
-		# move reulting packages in one directory for next steps
-		tito build --dist $pkg_dist_suffix --debug -o tmp-tito/$MOCK_BUILDER --builder mock --builder-arg mock=$MOCK_BUILDER --rpm
+			# --rpmbuild-options="-D Version $versionmajor" 
+		if [ "$SNAP_BUILD" = "snap" ]
+		then
+			prevbranch=$(git rev-parse --abbrev-ref HEAD)
+			git checkout -b tmp-build
+			git reset --hard
 
+			# vytahneme si na chvili nemodifikovany spec s puvodnimi verzemi souboru
+			# po prejmenovani opet navratime
+			#for file in *.spec ; do mv $file $file.tmp-build ; git checkout $file ; done
+			#for file in $(spectool -S -l *.spec | awk '{print $2}' | grep "$(awk -F: '/^Version:/{print $2}' < *.spec | awk '{print $1}')" ) ; do git mv $file ${file/$(awk -F: '/^Version:/{print $2}' < *.spec | awk '{print $1}')/$versionmajor} ; done
+			#for file in *.spec.tmp-build ; do sed -i -e "/^Source/s/%{version}/$(awk -F: '/^Version:/{print $2}' < *.spec | awk '{print $1}')/" $file ; done
+			#for file in *.spec.tmp-build ; do mv $file ${file%.tmp-build} ; done
+
+			#sed -r -i -e '/^Release:/s/\s*$/'".$versionsnapsuffix/" *.spec
+			sed -r -i -e '/^Release:/s/^.*$/Release: '"0.$versionsnapsuffix/" *.spec
+			
+			tito tag --keep-version --no-auto-changelog
+			
+			# move reulting packages in one directory for next steps
+			tito build --dist $pkg_dist_suffix --debug -o tmp-tito/$MOCK_BUILDER --builder mock --builder-arg mock=$MOCK_BUILDER --rpm
+
+			git checkout -- *.spec
+			git checkout $prevbranch
+			git branch -D tmp-build
+			git tag -d $name-$(awk -F: '/^Version:/{print $2}' < *.spec | awk '{print $1}')-0.$versionsnapsuffix
+		else
+			# move reulting packages in one directory for next steps
+			tito build --dist $pkg_dist_suffix --debug -o tmp-tito/$MOCK_BUILDER --builder mock --builder-arg mock=$MOCK_BUILDER --rpm
+		fi
+		
 		# create repository (all files from this repo should be saved as artifacts)
 		find tmp-tito/$MOCK_BUILDER -maxdepth 1 -type f -exec mv '{}' $resultdir/ \;
 		;;

@@ -29,12 +29,19 @@ where the params mean
   * **snap|nosnap** - build release readu or snapshot packages
   * **tag|notag** - base the snap build version on tag or on latest spec
   * **sign|nosign** - choose generating gpg signed or unsigned packages
+  * **test|notest** - enable bats based functional test cases
 
 examples of snapshot versions depending on combination of params
   * **snap+notag**: etnpol-tomcat-7.0-7.0.35.00.snap.20130117.154830.git.466b173-0.el6.noarch.rpm
   * **snap+tag**: etnpol-tomcat-7.0-7.0.27.99.snap.20130117.151837.git.466b173-0.el6.noarch.rpm
   * **nosnap+notag**: etnpol-tomcat-7.0-7.0.35-0.el5.noarch.rpm
   * **nosnap+tag**: etnpol-tomcat-7.0-7.0.27-0.el6.noarch.rpm
+
+because tito is special tool for managing rpm release process with tags, snap build of tito base package
+uses slightly modified versioning:
+  * packag-name-x.y-0.00.snap.YYYYMMDD.HHMMSS.git.HASH.el6.ARCH.rpm
+this differentiates snap build from regular package release a makes them upgradeable. snap suffix in release section does not
+require modification of upstream source in tito controlled repository.
 
 configuration file "jenkins-rpm-builder.conf" (for example gpg keys and default params when used without params) is searched in
   * /etc/

@@ -129,7 +129,7 @@ do
 	cp $specfilein $specfile
 
 	# for templated spec, replace version with version from tag
-	sed -r -i -e 's/@@version@@/'"$tagversionmajor"/g $specfile
+	sed -r -i -e 's/@@version@@/'"$tagversionmajor"'/g' $specfile
 done
 
 # by default all versions are based on tagged version

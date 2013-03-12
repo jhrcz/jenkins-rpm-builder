@@ -161,11 +161,11 @@ then
 		sed -r -i -e '/^Version:/s/\s*$/'".$versionsnapsuffix/" *.spec
 	fi
 else
-	versionmajor="$(awk -F: '/^Version:/{print $2}' < *.spec | awk '{print $1}')"
+	versionmajor="$(rpm -q --queryformat="%{name}" --specfile *.spec)"
 fi
 
 # we need to know the package name for generating source tarball
-name="$(awk -F: '/^Name:/{print $2}' < *.spec | awk '{print $1}')"
+name="$(rpm -q --queryformat="%{name}" --specfile *.spec)"
 
 # clean mock environment before builds and tests
 mock -r ${MOCK_BUILDER} --clean

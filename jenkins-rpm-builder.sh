@@ -186,7 +186,7 @@ case $BUILDER in
 		gzip ${name}-${versionmajor}.tar
 
 		rm -f SRPMS/*.src.rpm
-		rpmbuild -bs --define '%_topdir '"`pwd`" --define '%_sourcedir %{_topdir}' *.spec
+		rpmbuild -bs --define '%_topdir '"`pwd`" --define '%_sourcedir %{_topdir}' --define "%dist $pkg_dist_suffix" *.spec
 		#sample output: Wrote: /tmp/rctc-repo/SRPMS/rctc-1.10-0.el6.src.rpm
 
 		# build

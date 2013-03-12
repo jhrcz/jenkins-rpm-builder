@@ -78,6 +78,10 @@ mkdir -p tmp-tito/$MOCK_BUILDER
 [ -f .builder ] \
 	&& BUILDER=$(head -n 1 .builder)
 
+#fallback to make-like build method
+[ -z "$BUILDER" ] \
+	&& BUILDER=make
+
 mock_cmd='/usr/bin/mock'
 case "$MOCK_BUILDER" in
 	$MOCK_BUILDER_EL5)

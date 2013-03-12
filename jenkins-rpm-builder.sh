@@ -136,6 +136,11 @@ fi
 # be safe when no tag exists
 if [ -z "$tagversionmajor" ]
 then
+	if [ "$SNAP_BUILD" = "nosnap" ]
+	then
+		echo "ERROR: nosnap build reuires tagged relese"
+		exit 1
+	fi
 	tagversion="0.0"
 	tagversionmajor="$tagversion"
 fi

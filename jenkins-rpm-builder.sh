@@ -107,6 +107,7 @@ tagversionmajor="${tagversion%%-*}"
 if [ -z "$tagversionmajor" ]
 then
 	tagversion="0.0"
+	tagversionmajor="$tagversion"
 fi
 
 # reset workdir to get all files as are in git

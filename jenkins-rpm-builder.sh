@@ -156,16 +156,16 @@ then
 		# replace version with version based on previous tagged and snap suffix
 		sed -r -i -e 's/^Version:.*$/Version: '"${versionmajor}/" *.spec
 	else
-		versionmajor="$(awk -F: '/^Version:/{print $2}' < *.spec | awk '{print $1}').$versionsnapsuffix"
+		versionmajor="$( rpm -q --queryformat="%{version}\n" --specfile *.spec | head -n 1 | awk '{print $1}').$versionsnapsuffix"
 		# append snap suffix to version
 		sed -r -i -e '/^Version:/s/\s*$/'".$versionsnapsuffix/" *.spec
 	fi
 else
-	versionmajor="$(rpm -q --queryformat="%{name}" --specfile *.spec)"
+	versionmajor="$(rpm -q --queryformat="%{version}\n" --specfile *.spec | head -n 1)"
 fi
 
 # we need to know the package name for generating source tarball
-name="$(rpm -q --queryformat="%{name}" --specfile *.spec)"
+name="$(rpm -q --queryformat="%{name}\n" --specfile *.spec | head -n 1)"
 
 # clean mock environment before builds and tests
 mock -r ${MOCK_BUILDER} --clean
@@ -220,7 +220,7 @@ case $BUILDER in
 			git checkout -- *.spec
 			git checkout $prevbranch
 			git branch -D tmp-build
-			git tag -d $name-$(awk -F: '/^Version:/{print $2}' < *.spec | awk '{print $1}')-0.$versionsnapsuffix
+			git tag -d $name-$(rpm -q --queryformat="%{version}\n" --specfile *.spec | head -n 1 | awk '{print $1}')-0.$versionsnapsuffix
 		else
 			# move reulting packages in one directory for next steps
 			tito build --dist $pkg_dist_suffix --debug -o tmp-tito/$MOCK_BUILDER --builder mock --builder-arg mock=$MOCK_BUILDER --rpm

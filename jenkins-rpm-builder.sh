@@ -1,5 +1,5 @@
 #!/bin/bash
-set -x
+[ "$DEBUG" = "YES" ] && set -x
 set -e
 
 # match nothing when glob does not matches any file
@@ -53,6 +53,19 @@ done
 [ -z "$MOCK_BUILDER_EL6" ] && MOCK_BUILDER_EL6="$MOCK_BUILDER_EL6_DEFAULT" || true
 [ -z "$MOCK_BUILDER_EL5" ] && MOCK_BUILDER_EL5="$MOCK_BUILDER_EL5_DEFAULT" || true
 
+echo ":::::"
+echo "::::: MOCK_BUILDER:  $MOCK_BUILDER"
+echo "::::: SNAP_BUILD:    $SNAP_BUILD"
+echo "::::: TAGGED_BUILD:  $TAGGED_BUILD"
+echo "::::: SIGN_PACKAGES: $SIGN_PACKAGES"
+echo "::::: TEST_PACKAGES: $TEST_PACKAGES"
+echo ":::::"
+
+echo ":::::"
+echo "::::: MOCK_BUILDER_EL6: $MOCK_BUILDER_EL6"
+echo "::::: MOCK_BUILDER_EL5: $MOCK_BUILDER_EL5"
+echo ":::::"
+
 resultdir="repo/$MOCK_BUILDER"
 if [ "$SNAP_BUILD" = "snap" ]
 then
@@ -78,6 +91,10 @@ mkdir -p tmp-tito/$MOCK_BUILDER
 [ -f .builder ] \
 	&& BUILDER=$(head -n 1 .builder)
 
+echo ":::::"
+echo "::::: BUILDER: $BUILDER"
+echo ":::::"
+
 #fallback to make-like build method
 [ -z "$BUILDER" ] \
 	&& BUILDER=make
@@ -99,12 +116,18 @@ case "$MOCK_BUILDER" in
 esac
 
 # get the last version from vcs repo
+echo ":::::"
+echo "::::: getting version info from vcs based on 'release-' tag"
+echo ":::::"
 tag="$(git describe --tags --match 'release*' --abbrev=0 || true)"
 tagversion="${tag#release-}"
 tagversionmajor="${tagversion%%-*}"
 
 if [ -z "$tagversionmajor" ]
 then
+	echo ":::::"
+	echo "::::: version not found, trying 'v' tag "
+	echo ":::::"
 	tag="$(git describe --tags --match 'v*' --abbrev=0 || true)"
 	tagversion="${tag#v}"
 	tagversionmajor="${tagversion%%-*}"
@@ -119,6 +142,9 @@ fi
 
 # reset workdir to get all files as are in git
 # removes local changes in snap spec files for example
+echo ":::::"
+echo "::::: reseting git repo to start with unmodified files"
+echo ":::::"
 git reset --hard
 
 # by default building from HEAD of the branch
@@ -126,12 +152,20 @@ git reset --hard
 # specialy when doing snap build for update possibility to next major version
 if [ "$TAGGED_BUILD" = "tag" -a  "$SNAP_BUILD" = "" ]
 then
+	echo ":::::"
+	echo "::::: checking out tag: $tag"
+	echo ":::::"
 	git checkout "$tag"
 fi
 
 # when only spec template is prepared, then use it
 for specfilein in *.spec.in
 do
+	echo ":::::"
+	echo "::::: using spec.in as a spec template"
+	echo "::::: @@version@@ string will be replaced with: $tagversionmajor"
+	echo ":::::"
+
 	specfile=${specfilein%.in}
 	cp $specfilein $specfile
 
@@ -157,6 +191,9 @@ then
 	else
 		versionsnapsuffix="00.$versionsnapsuffix"
 	fi
+	echo ":::::"
+	echo "::::: building snap package with version suffix: $versionsnapsuffix"
+	echo ":::::"
 
 	if [ "$TAGGED_BUILD" = "tag" ]
 	then
@@ -184,8 +221,16 @@ case $BUILDER in
 		#make dist
 		if [ "$SNAP_BUILD" = "snap" ]
 		then
+			echo ":::::"
+			echo "::::: building snap package from HEAD"
+			echo ":::::"
+			
 			sourcerevision="HEAD"
 		else
+			echo ":::::"
+			echo "::::: building nosnap package with tag: $tag"
+			echo ":::::"
+			
 			sourcerevision="$tag"
 		fi
 		git archive --format=tar --prefix="${name}-${versionmajor}/" -o ${name}-${versionmajor}.tar $sourcerevision
@@ -196,6 +241,9 @@ case $BUILDER in
 		rpmbuild -bs --define '%_topdir '"`pwd`" --define '%_sourcedir %{_topdir}' --define "%dist $pkg_dist_suffix" *.spec
 		#sample output: Wrote: /tmp/rctc-repo/SRPMS/rctc-1.10-0.el6.src.rpm
 
+		echo ":::::"
+		echo "::::: building in mock"
+		echo ":::::"
 		# build
 		eval $mock_cmd --resultdir \"$resultdir\" -D \"dist $pkg_dist_suffix\" SRPMS/*.src.rpm
 		;;
@@ -206,7 +254,17 @@ case $BUILDER in
 			# --rpmbuild-options="-D Version $versionmajor" 
 		if [ "$SNAP_BUILD" = "snap" ]
 		then
+			echo ":::::"
+			echo "::::: building snap package with tito"
+			echo ":::::"
+
 			prevbranch=$(git rev-parse --abbrev-ref HEAD)
+			
+			echo ":::::"
+			echo "::::: spec based on tito version with tag $prevbranch"
+			echo "::::: with release suffix: 0.$versionsnapsuffix"
+			echo ":::::"
+
 			git checkout -b tmp-build
 			git reset --hard
 
@@ -230,6 +288,10 @@ case $BUILDER in
 			git branch -D tmp-build
 			git tag -d $name-$(rpm -q --queryformat="%{version}\n" --specfile *.spec | head -n 1 | awk '{print $1}')-0.$versionsnapsuffix
 		else
+			echo ":::::"
+			echo "::::: building nosnap with tito"
+			echo ":::::"
+			
 			# move reulting packages in one directory for next steps
 			tito build --dist $pkg_dist_suffix --debug -o tmp-tito/$MOCK_BUILDER --builder mock --builder-arg mock=$MOCK_BUILDER --rpm
 		fi
@@ -238,12 +300,22 @@ case $BUILDER in
 		find tmp-tito/$MOCK_BUILDER -maxdepth 1 -type f -exec mv '{}' $resultdir/ \;
 		;;
 	fpm)
+		echo ":::::"
+		echo "::::: building with fpm"
+		echo ":::::"
+		
 		FPM_PARAMS=$(ls .fpm.* | grep -v .fpm.depends | grep -v .fpm.config-files| grep -v .builder | while read param ; do param=${param##.fpm.} ; echo "--${param} '$(head -n 1 .fpm.${param})' " ; done)
 		FPM_PARAMS_DEPENDS=$(while read dep ; do echo "--depends $dep " ; done < .fpm.depends )
 		FPM_PARAMS_CONFIG_FILES=$(while read conffile_wild ; do for conffile in ./$conffile_wild ; do echo "--config-files ${conffile#./} " ; done ; done < .fpm.config-files || true )
 		rpmarch=noarch
 		#rpmarch=${MOCK_BUILDER##*-}
 		rpmout=$(head -n1 .fpm.name)-$(head -n1 .fpm.version)$([ -f .fpm.iteration ] && echo -n "-" && head -n1 .fpm.iteration || true)-${rpmarch}.rpm
+		
+		echo ":::::"
+		echo "::::: fpm params: FPM_PARAMS"
+		echo "::::: depends: $FPM_PARAMS_DEPENDS"
+		echo "::::: detected conf files: $FPM_PARAMS_CONFIG_FILES"
+		echo ":::::"
 		eval fpm -s dir -x \'.fpm.\*\' -x repo -x \'tmp-\*\' -x .git -t rpm -p $resultdir/$rpmout $FPM_PARAMS $FPM_PARAMS_DEPENDS $FPM_PARAMS_CONFIG_FILES .
 		;;
 	*)
@@ -275,6 +347,10 @@ if [ "$SIGN_PACKAGES" = "sign" ]
 			;;
 	esac
 
+	echo ":::::"
+	echo "::::: signing packages"
+	echo "::::: with command: $signcmd"
+	echo ":::::"
 	for package in $resultdir/*.rpm
 	do
 		eval $signcmd $package
@@ -283,12 +359,18 @@ fi
 
 if [ "$TEST_PACKAGES" = "test" ]
 then
+	echo ":::::"
+	echo "::::: running test cases"
+	echo ":::::"
 	mock -r ${MOCK_BUILDER} --init
 	mock -r ${MOCK_BUILDER} --install $(GLOBIGNORE='*.src.rpm:*-debug*rpm' ; ls  repo/${MOCK_BUILDER}*/*.rpm)
 	mock -r ${MOCK_BUILDER} --copyin tests/ /builddir/build/tests/
 	mock -r ${MOCK_BUILDER} --shell "cd /builddir/build/tests && ./run.sh"
 fi
 
+echo ":::::"
+echo "::::: generating repofiles: $resultdir"
+echo ":::::"
 case "$MOCK_BUILDER" in
 	$MOCK_BUILDER_EL5)
 		createrepo -s sha $resultdir
@@ -306,4 +388,14 @@ gpgcheck=0
 baseurl=${REPO_URL_PREFIX}/$n/${resultdir#repo/}/
 proxy=_none_
 " > $resultdir/local-devel-$n-${resultdir#repo/}.repo
+cat $resultdir/local-devel-$n-${resultdir#repo/}.repo
 
+echo ":::::"
+echo ":::::"
+echo ":::::"
+
+find repo/
+
+echo ":::::"
+echo "::::: DONE"
+echo ":::::"

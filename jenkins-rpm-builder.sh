@@ -16,6 +16,7 @@ TAGGED_BUILD_DEFAULT="notag"
 SIGN_PACKAGES_DEFAULT="sign"
 TEST_PACKAGES_DEFAULT="notest"
 OUTOFDIR_BUILD_DEFAULT="nooutofdir"
+GETSRC_DEFAULT="nogetsrc"
 
 MOCK_BUILDER_EL6_DEFAULT=epel-6-x86_64
 MOCK_BUILDER_EL5_DEFAULT=epel-5-x86_64
@@ -47,6 +48,9 @@ done
 # enable building outside of current repo workdir
 [ -z "$OUTOFDIR_BUILD" ] && OUTOFDIR_BUILD="$6" || true
 
+# enable downloading sources referenced in spec
+[ -z "$GETSRC" ] && GETSRC="$7" || true
+
 # defaults when not defined
 [ -z "$MOCK_BUILDER" ] && MOCK_BUILDER="$MOCK_BUILDER_DEFAULT" || true
 [ -z "$SNAP_BUILD" ] && SNAP_BUILD="$SNAP_BUILD_DEFAULT" || true
@@ -54,6 +58,7 @@ done
 [ -z "$SIGN_PACKAGES" ] && SIGN_PACKAGES="$SIGN_PACKAGES_DEFAULT" || true
 [ -z "$TEST_PACKAGES" ] && TEST_PACKAGES="$TEST_PACKAGES_DEFAULT" || true
 [ -z "$OUTOFDIR_BUILD" ] && TEST_PACKAGES="$OUTOFDIR_BUILD_DEFAULT" || true
+[ -z "$GETSRC" ] && TEST_PACKAGES="$GETSRC_DEFAULT" || true
 
 [ -z "$MOCK_BUILDER_EL6" ] && MOCK_BUILDER_EL6="$MOCK_BUILDER_EL6_DEFAULT" || true
 [ -z "$MOCK_BUILDER_EL5" ] && MOCK_BUILDER_EL5="$MOCK_BUILDER_EL5_DEFAULT" || true
@@ -64,6 +69,7 @@ echo "::::: SNAP_BUILD:    $SNAP_BUILD"
 echo "::::: TAGGED_BUILD:  $TAGGED_BUILD"
 echo "::::: SIGN_PACKAGES: $SIGN_PACKAGES"
 echo "::::: TEST_PACKAGES: $TEST_PACKAGES"
+echo "::::: GETSRC:        $GETSRC"
 echo ":::::"
 
 echo ":::::"
@@ -71,7 +77,6 @@ echo "::::: MOCK_BUILDER_EL6: $MOCK_BUILDER_EL6"
 echo "::::: MOCK_BUILDER_EL5: $MOCK_BUILDER_EL5"
 echo ":::::"
 
-OUTOFDIR_BUILD=outofdir
 if [ "$OUTOFDIR_BUILD" = "outofdir" ]
 then
 	prevbranch=$(git rev-parse --abbrev-ref HEAD)
@@ -270,9 +275,15 @@ case $BUILDER in
 			
 			sourcerevision="$tag"
 		fi
-		git archive --format=tar --prefix="${name}-${versionmajor}/" -o ${name}-${versionmajor}.tar $sourcerevision
-		rm ${name}-${versionmajor}.tar.gz || true
-		gzip ${name}-${versionmajor}.tar
+
+		if [ "$GETSRC" = "getsrc" ]
+		then
+			spectool -A -g *.spec
+		else
+			git archive --format=tar --prefix="${name}-${versionmajor}/" -o ${name}-${versionmajor}.tar $sourcerevision
+			rm ${name}-${versionmajor}.tar.gz || true
+			gzip ${name}-${versionmajor}.tar
+		fi
 
 		rm -f SRPMS/*.src.rpm
 		rpmbuild -bs --define '%_topdir '"`pwd`" --define '%_sourcedir %{_topdir}' --define "%dist $pkg_dist_suffix" *.spec

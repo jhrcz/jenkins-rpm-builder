@@ -15,6 +15,7 @@ GPG_KEY_EL5="GPG KEY FOR EL5 SIGNING"
 #TAGGED_BUILD_DEFAULT="notag"
 #SIGN_PACKAGES_DEFAULT="sign"
 #OUTOFDIR_BUILD="nooutofdir"
+#GETSRC="nogetsrc"
 
 # default mock builders
 #MOCK_BUILDER_EL6_DEFAULT="epel-6-x86_64"

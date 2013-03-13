@@ -15,6 +15,7 @@ SNAP_BUILD_DEFAULT="nosnap"
 TAGGED_BUILD_DEFAULT="notag"
 SIGN_PACKAGES_DEFAULT="sign"
 TEST_PACKAGES_DEFAULT="notest"
+OUTOFDIR_BUILD_DEFAULT="nooutofdir"
 
 MOCK_BUILDER_EL6_DEFAULT=epel-6-x86_64
 MOCK_BUILDER_EL5_DEFAULT=epel-5-x86_64
@@ -43,12 +44,16 @@ done
 # enable running test suite on packages
 [ -z "$TEST_PACKAGES" ] && TEST_PACKAGES="$5" || true
 
+# enable building outside of current repo workdir
+[ -z "$OUTOFDIR_BUILD" ] && OUTOFDIR_BUILD="$6" || true
+
 # defaults when not defined
 [ -z "$MOCK_BUILDER" ] && MOCK_BUILDER="$MOCK_BUILDER_DEFAULT" || true
 [ -z "$SNAP_BUILD" ] && SNAP_BUILD="$SNAP_BUILD_DEFAULT" || true
 [ -z "$TAGGED_BUILD" ] && TAGGED_BUILD="$TAGGED_BUILD_DEFAULT" || true
 [ -z "$SIGN_PACKAGES" ] && SIGN_PACKAGES="$SIGN_PACKAGES_DEFAULT" || true
 [ -z "$TEST_PACKAGES" ] && TEST_PACKAGES="$TEST_PACKAGES_DEFAULT" || true
+[ -z "$OUTOFDIR_BUILD" ] && TEST_PACKAGES="$OUTOFDIR_BUILD_DEFAULT" || true
 
 [ -z "$MOCK_BUILDER_EL6" ] && MOCK_BUILDER_EL6="$MOCK_BUILDER_EL6_DEFAULT" || true
 [ -z "$MOCK_BUILDER_EL5" ] && MOCK_BUILDER_EL5="$MOCK_BUILDER_EL5_DEFAULT" || true
@@ -65,6 +70,23 @@ echo ":::::"
 echo "::::: MOCK_BUILDER_EL6: $MOCK_BUILDER_EL6"
 echo "::::: MOCK_BUILDER_EL5: $MOCK_BUILDER_EL5"
 echo ":::::"
+
+OUTOFDIR_BUILD=outofdir
+if [ "$OUTOFDIR_BUILD" = "outofdir" ]
+then
+	prevbranch=$(git rev-parse --abbrev-ref HEAD)
+
+	echo ":::::"
+	echo "::::: building out of checkout dir with branch $prevbranch"
+	echo ":::::"
+
+	rm -rf tmpbuild
+	mkdir -p tmpbuild
+	cd tmpbuild
+	git clone ../ repoclone
+	cd repoclone
+	git checkout "$prevbranch"
+fi
 
 resultdir="repo/$MOCK_BUILDER"
 if [ "$SNAP_BUILD" = "snap" ]

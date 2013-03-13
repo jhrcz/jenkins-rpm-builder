@@ -103,6 +103,13 @@ tag="$(git describe --tags --match 'release*' --abbrev=0 || true)"
 tagversion="${tag#release-}"
 tagversionmajor="${tagversion%%-*}"
 
+if [ -z "$tagversionmajor" ]
+then
+	tag="$(git describe --tags --match 'v*' --abbrev=0 || true)"
+	tagversion="${tag#v}"
+	tagversionmajor="${tagversion%%-*}"
+fi
+
 # be safe when no tag exists
 if [ -z "$tagversionmajor" ]
 then

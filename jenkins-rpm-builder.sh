@@ -139,11 +139,21 @@ esac
 
 # get the last version from vcs repo
 echo ":::::"
-echo "::::: getting version info from vcs based on 'release-' tag"
+echo "::::: getting version info from vcs based on 'rpm-release-' tag"
 echo ":::::"
-tag="$(git describe --tags --match 'release*' --abbrev=0 || true)"
-tagversion="${tag#release-}"
+tag="$(git describe --tags --match 'rpm-release*' --abbrev=0 || true)"
+tagversion="${tag#rpm-release-}"
 tagversionmajor="${tagversion%%-*}"
+
+if [ -z "$tagversionmajor" ]
+then
+    echo ":::::"
+    echo "::::: version not found, trying 'release-' tag"
+    echo ":::::"
+    tag="$(git describe --tags --match 'release*' --abbrev=0 || true)"
+    tagversion="${tag#release-}"
+    tagversionmajor="${tagversion%%-*}"
+fi
 
 if [ -z "$tagversionmajor" ]
 then

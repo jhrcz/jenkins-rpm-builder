@@ -174,7 +174,7 @@ fi
 # be safe when no tag exists
 if [ -z "$tagversionmajor" ]
 then
-	if [ "$SNAP_BUILD" = "nosnap" -a "$BUILDER" != "tito" ]
+	if [ "$SNAP_BUILD" = "nosnap" -a "$BUILDER" != "tito" -a "$BUILDER" != "fpm" ]
 	then
 		echo "ERROR: nosnap build reuires tagged relese"
 		exit 1

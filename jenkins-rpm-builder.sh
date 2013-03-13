@@ -282,7 +282,7 @@ case $BUILDER in
 			echo ":::::"
 			echo "::::: downloading all files reference in spec with url"
 			echo ":::::"
-			spectool -A -g *.spec
+			spectool --define '%_topdir '"`pwd`" --define '%_sourcedir %{_topdir}' --define "%dist $pkg_dist_suffix" -A -g *.spec
 		else
 			echo ":::::"
 			echo "::::: building upstream source tarball from vcs repo"

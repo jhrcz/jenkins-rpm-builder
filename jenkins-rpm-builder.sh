@@ -69,6 +69,7 @@ echo "::::: SNAP_BUILD:    $SNAP_BUILD"
 echo "::::: TAGGED_BUILD:  $TAGGED_BUILD"
 echo "::::: SIGN_PACKAGES: $SIGN_PACKAGES"
 echo "::::: TEST_PACKAGES: $TEST_PACKAGES"
+echo "::::: OUTOFDIR_BUILD:$OUTOFDIR_BUILD"
 echo "::::: GETSRC:        $GETSRC"
 echo ":::::"
 

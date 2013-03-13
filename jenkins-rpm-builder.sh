@@ -279,8 +279,14 @@ case $BUILDER in
 
 		if [ "$GETSRC" = "getsrc" ]
 		then
+			echo ":::::"
+			echo "::::: downloading all files reference in spec with url"
+			echo ":::::"
 			spectool -A -g *.spec
 		else
+			echo ":::::"
+			echo "::::: building upstream source tarball from vcs repo"
+			echo ":::::"
 			git archive --format=tar --prefix="${name}-${versionmajor}/" -o ${name}-${versionmajor}.tar $sourcerevision
 			rm ${name}-${versionmajor}.tar.gz || true
 			gzip ${name}-${versionmajor}.tar

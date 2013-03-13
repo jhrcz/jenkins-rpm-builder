@@ -169,7 +169,7 @@ fi
 name="$(rpm -q --queryformat="%{name}\n" --specfile *.spec | head -n 1)"
 
 # clean mock environment before builds and tests
-mock -r ${MOCK_BUILDER} --clean
+#mock -r ${MOCK_BUILDER} --clean
 
 case $BUILDER in
 	make)

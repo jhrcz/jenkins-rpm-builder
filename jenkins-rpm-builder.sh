@@ -20,7 +20,7 @@ MOCK_BUILDER_EL6_DEFAULT=epel-6-x86_64
 MOCK_BUILDER_EL5_DEFAULT=epel-5-x86_64
 
 # source all possible conf file locations
-for conffile in /etc/jenkins-rpm-builder.conf $HOME/jenkins-rpm-builder.conf $(dirname $0)/jenkins-rpm-builder.conf
+for conffile in /etc/jenkins-rpm-builder.conf $HOME/.jenkins-rpm-builder.conf $(dirname $0)/jenkins-rpm-builder.conf
 do
 	if [ -f "$conffile" ]
 	then

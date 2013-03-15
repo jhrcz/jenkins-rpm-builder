@@ -193,7 +193,7 @@ git reset --hard
 # by default building from HEAD of the branch
 # but for many cases it's better to use "tag" param
 # specialy when doing snap build for update possibility to next major version
-if [ "$TAGGED_BUILD" = "tag" -a  "$SNAP_BUILD" = "" ]
+if [ "$TAGGED_BUILD" = "tag" -a  "$SNAP_BUILD" = "nosnap" ]
 then
 	echo ":::::"
 	echo "::::: checking out tag: $tag"

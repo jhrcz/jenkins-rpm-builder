@@ -193,15 +193,18 @@ git reset --hard
 # by default building from HEAD of the branch
 # but for many cases it's better to use "tag" param
 # specialy when doing snap build for update possibility to next major version
-if [ "$TAGGED_BUILD" = "tag" -a  "$SNAP_BUILD" = "nosnap" ]
+if [ "$SNAP_BUILD" = "nosnap" ]
 then
-	echo ":::::"
-	echo "::::: checking out tag: $tag"
-	echo ":::::"
-	git checkout "$tag"
-else
-	echo "ERROR: nosnap build requires tagged build"
-	exit 1
+	if [ "$TAGGED_BUILD" = "tag" ]
+	then
+		echo ":::::"
+		echo "::::: checking out tag: $tag"
+		echo ":::::"
+		git checkout "$tag"
+	else
+		echo "ERROR: nosnap build requires tagged build"
+		exit 1
+	fi
 fi
 
 # when only spec template is prepared, then use it

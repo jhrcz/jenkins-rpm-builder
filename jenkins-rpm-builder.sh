@@ -199,6 +199,9 @@ then
 	echo "::::: checking out tag: $tag"
 	echo ":::::"
 	git checkout "$tag"
+else
+	echo "ERROR: nosnap build requires tagged build"
+	exit 1
 fi
 
 # when only spec template is prepared, then use it

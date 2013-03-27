@@ -424,6 +424,7 @@ then
 	echo "::::: running test cases"
 	echo ":::::"
 	mock -r ${MOCK_BUILDER} --init
+	mock -r ${MOCK_BUILDER} --install bats
 	mock -r ${MOCK_BUILDER} --install $(GLOBIGNORE='*.src.rpm:*-debug*rpm' ; ls  repo/${MOCK_BUILDER}*/*.rpm)
 	mock -r ${MOCK_BUILDER} --copyin tests/ /builddir/build/tests/
 	mock -r ${MOCK_BUILDER} --shell "cd /builddir/build/tests && ./run.sh"

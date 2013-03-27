@@ -176,7 +176,7 @@ if [ -z "$tagversionmajor" ]
 then
 	if [ "$SNAP_BUILD" = "nosnap" -a "$BUILDER" != "tito" -a "$BUILDER" != "fpm" ]
 	then
-		echo "ERROR: nosnap build reuires tagged relese"
+		echo "ERROR: nosnap build requires tagged release"
 		exit 1
 	fi
 	tagversion="0.0"

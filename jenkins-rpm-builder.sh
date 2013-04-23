@@ -289,6 +289,15 @@ case $BUILDER in
 			echo "::::: downloading all files reference in spec with url"
 			echo ":::::"
 			spectool --define '%_topdir '"`pwd`" --define '%_sourcedir %{_topdir}' --define "%dist $pkg_dist_suffix" -A -g *.spec
+
+			# for compatibility with github and spectool on el6
+			# rename downloaded file to requested name befored github redirects
+			s=$(spectool -l *.spec  | grep Source0: | cut -d : -f 2- | tr -d " ")
+			s=$(basename "$s" ".tar.gz")
+			if [ -f "$s" ]
+			then
+				mv "$s" "$s".tar.gz
+			fi
 		else
 			echo ":::::"
 			echo "::::: building upstream source tarball from vcs repo"

@@ -12,7 +12,7 @@ GPG_KEY_EL5="GPG KEY FOR EL5 SIGNING"
 MOCK_BUILDER_DEFAULT="epel-6-x86_64"
 
 SNAP_BUILD_DEFAULT="nosnap"
-TAGGED_BUILD_DEFAULT="notag"
+TAGGED_BUILD_DEFAULT="tag"
 SIGN_PACKAGES_DEFAULT="sign"
 TEST_PACKAGES_DEFAULT="notest"
 OUTOFDIR_BUILD_DEFAULT="nooutofdir"
@@ -57,8 +57,8 @@ done
 [ -z "$TAGGED_BUILD" ] && TAGGED_BUILD="$TAGGED_BUILD_DEFAULT" || true
 [ -z "$SIGN_PACKAGES" ] && SIGN_PACKAGES="$SIGN_PACKAGES_DEFAULT" || true
 [ -z "$TEST_PACKAGES" ] && TEST_PACKAGES="$TEST_PACKAGES_DEFAULT" || true
-[ -z "$OUTOFDIR_BUILD" ] && TEST_PACKAGES="$OUTOFDIR_BUILD_DEFAULT" || true
-[ -z "$GETSRC" ] && TEST_PACKAGES="$GETSRC_DEFAULT" || true
+[ -z "$OUTOFDIR_BUILD" ] && OUTOFDIR_BUILD="$OUTOFDIR_BUILD_DEFAULT" || true
+[ -z "$GETSRC" ] && GETSRC="$GETSRC_DEFAULT" || true
 
 [ -z "$MOCK_BUILDER_EL6" ] && MOCK_BUILDER_EL6="$MOCK_BUILDER_EL6_DEFAULT" || true
 [ -z "$MOCK_BUILDER_EL5" ] && MOCK_BUILDER_EL5="$MOCK_BUILDER_EL5_DEFAULT" || true
@@ -176,7 +176,7 @@ if [ -z "$tagversionmajor" ]
 then
 	if [ "$SNAP_BUILD" = "nosnap" -a "$BUILDER" != "tito" -a "$BUILDER" != "fpm" ]
 	then
-		echo "ERROR: nosnap build reuires tagged relese"
+		echo "ERROR: nosnap build requires tagged release"
 		exit 1
 	fi
 	tagversion="0.0"
@@ -193,12 +193,18 @@ git reset --hard
 # by default building from HEAD of the branch
 # but for many cases it's better to use "tag" param
 # specialy when doing snap build for update possibility to next major version
-if [ "$TAGGED_BUILD" = "tag" -a  "$SNAP_BUILD" = "" ]
+if [ "$SNAP_BUILD" = "nosnap" ]
 then
-	echo ":::::"
-	echo "::::: checking out tag: $tag"
-	echo ":::::"
-	git checkout "$tag"
+	if [ "$TAGGED_BUILD" = "tag" ]
+	then
+		echo ":::::"
+		echo "::::: checking out tag: $tag"
+		echo ":::::"
+		git checkout "$tag"
+	else
+		echo "ERROR: nosnap build requires tagged build"
+		exit 1
+	fi
 fi
 
 # when only spec template is prepared, then use it
@@ -283,6 +289,15 @@ case $BUILDER in
 			echo "::::: downloading all files reference in spec with url"
 			echo ":::::"
 			spectool --define '%_topdir '"`pwd`" --define '%_sourcedir %{_topdir}' --define "%dist $pkg_dist_suffix" -A -g *.spec
+
+			# for compatibility with github and spectool on el6
+			# rename downloaded file to requested name befored github redirects
+			s=$(spectool -l *.spec  | grep Source0: | cut -d : -f 2- | tr -d " ")
+			s=$(basename "$s" ".tar.gz")
+			if [ -f "$s" ]
+			then
+				mv "$s" "$s".tar.gz
+			fi
 		else
 			echo ":::::"
 			echo "::::: building upstream source tarball from vcs repo"
@@ -418,6 +433,7 @@ then
 	echo "::::: running test cases"
 	echo ":::::"
 	mock -r ${MOCK_BUILDER} --init
+	mock -r ${MOCK_BUILDER} --install bats
 	mock -r ${MOCK_BUILDER} --install $(GLOBIGNORE='*.src.rpm:*-debug*rpm' ; ls  repo/${MOCK_BUILDER}*/*.rpm)
 	mock -r ${MOCK_BUILDER} --copyin tests/ /builddir/build/tests/
 	mock -r ${MOCK_BUILDER} --shell "cd /builddir/build/tests && ./run.sh"

@@ -382,7 +382,7 @@ case $BUILDER in
 		rpmout=$(head -n1 .fpm.name)-$(head -n1 .fpm.version)$([ -f .fpm.iteration ] && echo -n "-" && head -n1 .fpm.iteration || true)-${rpmarch}.rpm
 		
 		echo ":::::"
-		echo "::::: fpm params: FPM_PARAMS"
+		echo "::::: fpm params: $FPM_PARAMS"
 		echo "::::: depends: $FPM_PARAMS_DEPENDS"
 		echo "::::: detected conf files: $FPM_PARAMS_CONFIG_FILES"
 		echo ":::::"

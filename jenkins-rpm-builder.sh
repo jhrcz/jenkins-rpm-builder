@@ -379,7 +379,7 @@ case $BUILDER in
 		FPM_PARAMS_CONFIG_FILES=$(while read conffile_wild ; do for conffile in ./$conffile_wild ; do echo "--config-files ${conffile#./} " ; done ; done < .fpm.config-files || true )
 		rpmarch=noarch
 		#rpmarch=${MOCK_BUILDER##*-}
-		rpmout=$(head -n1 .fpm.name)-$(head -n1 .fpm.version)$([ -f .fpm.iteration ] && echo -n "-" && head -n1 .fpm.iteration || true)-${rpmarch}.rpm
+		rpmout=$(head -n1 .fpm.name)-$(head -n1 .fpm.version)$([ -f .fpm.iteration ] && echo -n "-" && head -n1 .fpm.iteration || true)$([ -f .fpm.iteration ] && echo -n "$pkg_dist_suffix")-${rpmarch}.rpm
 		
 		echo ":::::"
 		echo "::::: fpm params: $FPM_PARAMS"

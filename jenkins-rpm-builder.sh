@@ -293,10 +293,13 @@ case $BUILDER in
 			# for compatibility with github and spectool on el6
 			# rename downloaded file to requested name befored github redirects
 			s=$(spectool -l *.spec  | grep Source0: | cut -d : -f 2- | tr -d " ")
-			s=$(basename "$s" ".tar.gz")
-			if [ -f "$s" ]
+			if echo "$s" | grep -q github
 			then
-				mv "$s" "$s".tar.gz
+				s=$(basename "$s" ".tar.gz")
+				if [ -f "$s" ]
+				then
+					mv "$s" "$s".tar.gz
+				fi
 			fi
 		else
 			echo ":::::"

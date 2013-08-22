@@ -318,7 +318,7 @@ case $BUILDER in
 		echo "::::: building in mock"
 		echo ":::::"
 		# build
-		eval $mock_cmd --resultdir \"$resultdir\" -D \"dist $pkg_dist_suffix\" SRPMS/*.src.rpm
+		eval $mock_cmd ${KEEP_MOCK_ENV:+--no-cleanup-after} --resultdir \"$resultdir\" -D \"dist $pkg_dist_suffix\" SRPMS/*.src.rpm
 		;;
 	tito)
 		# override path to use mock from /usr/bin and not /usr/sbin

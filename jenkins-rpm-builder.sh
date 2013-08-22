@@ -228,7 +228,7 @@ version=${tagversion}
 
 # customizing version in spec for snapshot building
 # notice: rpm release number is appended after the version
-if [ "$SNAP_BUILD" = "snap" ]
+if [ "$SNAP_BUILD" = "snap" -a "$KEEP_VERSION" != "keepversion" ]
 then
 	# current version format is
 	# tagged build: 2.0.99.snap.20130116.161144.git.041ef6c

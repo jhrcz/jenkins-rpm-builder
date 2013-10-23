@@ -547,5 +547,19 @@ echo ":::::"
 find repo/
 
 echo ":::::"
+echo ":::::"
+echo ":::::"
+
+if [ -n "$SYNC_TRG_SERVER" -a -n "$SYNC_TRG_PATH" -a -n "$name" ]
+then
+	# some sanity check
+	echo "$name" | grep '/' && exit 1
+	echo "$name" | grep '\.\.' && exit 1
+
+	echo "Syncing repo to: $SYNC_TRG_SERVER:$SYNC_TRG_PATH/$name/"
+	rsync -ave ssh repo/ "$SYNC_TRG_SERVER":"$SYNC_TRG_PATH"/"$name"/
+fi
+
+echo ":::::"
 echo "::::: DONE"
 echo ":::::"

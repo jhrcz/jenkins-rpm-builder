@@ -310,6 +310,11 @@ case $BUILDER in
 				then
 					mv "$s" "$s".tar.gz
 				fi
+				s=${s/${name}-}
+				if [ -f "$s" ]
+				then
+					mv "$s" "$name-$s".tar.gz
+				fi
 			fi
 		else
 			echo ":::::"

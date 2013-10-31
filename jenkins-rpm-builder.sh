@@ -51,6 +51,12 @@ done
 # enable downloading sources referenced in spec
 [ -z "$GETSRC" ] && GETSRC="$7" || true
 
+# rpm pipe builder for re-signing only and filtered repo mirroring
+# ex. 'http://downloads-distro.mongodb.org/repo/redhat/os/x86_64/RPMS/'
+[ -z "$PIPEBUILD_REPO_URL" ] && PIPEBUILD_REPO_URL="$8" || true
+# ex. '2.4.6-mongodb_1'
+[ -z "$PIPEBUILD_RPM_VERSION" ] && PIPEBUILD_RPM_VERSION="$9" || true
+
 # defaults when not defined
 [ -z "$MOCK_BUILDER" ] && MOCK_BUILDER="$MOCK_BUILDER_DEFAULT" || true
 [ -z "$SNAP_BUILD" ] && SNAP_BUILD="$SNAP_BUILD_DEFAULT" || true
@@ -71,6 +77,8 @@ echo "::::: SIGN_PACKAGES: $SIGN_PACKAGES"
 echo "::::: TEST_PACKAGES: $TEST_PACKAGES"
 echo "::::: OUTOFDIR_BUILD:$OUTOFDIR_BUILD"
 echo "::::: GETSRC:        $GETSRC"
+echo "::::: PIPEBUILD_REPO_URL:    $PIPEBUILD_REPO_URL"
+echo "::::: PIPEBUILD_RPM_VERSION: $PIPEBUILD_RPM_VERSION"
 echo ":::::"
 
 echo ":::::"
@@ -115,6 +123,8 @@ mkdir -p tmp-tito/$MOCK_BUILDER
 	&& BUILDER=tito
 [ -f .fpm.name ] \
 	&& BUILDER=fpm
+[ -f pipebuilder.conf -o -n "$PIPEBUILD_REPO_URL" ] \
+	&& BUILDER=pipebuild
 # make it possible to override builder detection
 [ -f .builder ] \
 	&& BUILDER=$(head -n 1 .builder)
@@ -228,7 +238,7 @@ version=${tagversion}
 
 # customizing version in spec for snapshot building
 # notice: rpm release number is appended after the version
-if [ "$SNAP_BUILD" = "snap" ]
+if [ "$SNAP_BUILD" = "snap" -a "$KEEP_VERSION" != "keepversion" ]
 then
 	# current version format is
 	# tagged build: 2.0.99.snap.20130116.161144.git.041ef6c
@@ -293,10 +303,18 @@ case $BUILDER in
 			# for compatibility with github and spectool on el6
 			# rename downloaded file to requested name befored github redirects
 			s=$(spectool -l *.spec  | grep Source0: | cut -d : -f 2- | tr -d " ")
-			s=$(basename "$s" ".tar.gz")
-			if [ -f "$s" ]
+			if [ "$SOURCE_TGZ_RENAME_HACK" = "YES" ]
 			then
-				mv "$s" "$s".tar.gz
+				s=$(basename "$s" ".tar.gz")
+				if [ -f "$s" ]
+				then
+					mv "$s" "$s".tar.gz
+				fi
+				s=${s/${name}-}
+				if [ -f "$s" ]
+				then
+					mv "$s" "$name-$s".tar.gz
+				fi
 			fi
 		else
 			echo ":::::"
@@ -315,7 +333,7 @@ case $BUILDER in
 		echo "::::: building in mock"
 		echo ":::::"
 		# build
-		eval $mock_cmd --resultdir \"$resultdir\" -D \"dist $pkg_dist_suffix\" SRPMS/*.src.rpm
+		eval $mock_cmd ${KEEP_MOCK_ENV:+--no-cleanup-after} --resultdir \"$resultdir\" -D \"dist $pkg_dist_suffix\" SRPMS/*.src.rpm
 		;;
 	tito)
 		# override path to use mock from /usr/bin and not /usr/sbin
@@ -379,7 +397,8 @@ case $BUILDER in
 		FPM_PARAMS_CONFIG_FILES=$(while read conffile_wild ; do for conffile in ./$conffile_wild ; do echo "--config-files ${conffile#./} " ; done ; done < .fpm.config-files || true )
 		rpmarch=noarch
 		#rpmarch=${MOCK_BUILDER##*-}
-		rpmout=$(head -n1 .fpm.name)-$(head -n1 .fpm.version)$([ -f .fpm.iteration ] && echo -n "-" && head -n1 .fpm.iteration || true)-${rpmarch}.rpm
+		rpmout=$(head -n1 .fpm.name)-$(head -n1 .fpm.version)$([ -f .fpm.iteration ] && echo -n "-" && head -n1 .fpm.iteration || true)$([ -f .fpm.iteration ] && echo -n "$pkg_dist_suffix")-${rpmarch}.rpm
+		name="$(head -n1 .fpm.name)"
 		
 		echo ":::::"
 		echo "::::: fpm params: $FPM_PARAMS"
@@ -387,6 +406,72 @@ case $BUILDER in
 		echo "::::: detected conf files: $FPM_PARAMS_CONFIG_FILES"
 		echo ":::::"
 		eval fpm -s dir -x \'.fpm.\*\' -x repo -x \'tmp-\*\' -x .git -t rpm -p $resultdir/$rpmout $FPM_PARAMS $FPM_PARAMS_DEPENDS $FPM_PARAMS_CONFIG_FILES .
+		;;
+	pipebuild)
+		#PIPEBUILD_REPO_URL='http://downloads-distro.mongodb.org/repo/redhat/os/x86_64/RPMS/'
+		#PIPEBUILD_RPM_VERSION='2.4.6-mongodb_1'
+
+		[ -f "pipebuilder.conf" ] \
+			&& source pipebuilder.conf
+		echo "pipebuilder config:"
+		cat pipebuilder.conf
+		echo ""
+		if [ "$TAGGED_BUILD" = "tag" ]
+		then
+			[ -z "$PIPEBUILD_RPM_VERSION" -a -n "$version" ] \
+				&& PIPEBUILD_RPM_VERSION="${version%%#*}"
+			# be strinct and require tag to be in sync with requested version
+			echo "$version" | grep -q "^$PIPEBUILD_RPM_VERSION[-_:#]"
+		fi
+		[ -n "$PIPEBUILD_RPM_VERSION" ]
+
+		function list_pkgs_in_repo_url
+		{
+			local repo_url="$1"
+			local rpm_version="$2"
+
+			# links has to much differences in parametrs support betwen rhel/fedora to keep it in sync
+			#links -dump -http-proxy "${http_proxy##http://}" -no-numbering -no-references  "$repo_url" | grep -o '[^ ]*'"$rpm_version"'[^ ]*.rpm'
+			#links -dump -http-proxy "${http_proxy##http://}" "$repo_url" | grep -o '[^ ]*'"$rpm_version"'[^ ]*.rpm'
+			curl -s "$repo_url" | grep -o '>[^ ]*.rpm<' | tr -d "<>" | grep -o '[^ ]*'"$rpm_version"'[^ ]*.rpm'
+		}
+
+		function getmatching_from_repo
+		{
+			local repo_url="$1"
+			local rpm_version="$2"
+
+			# debug
+			#list_pkgs_in_repo_url "$repo_url" "$rpm_version"
+
+			while read pkg
+			do
+				echo "downloading $pkg..."
+				
+				# allow injecting cached files instead of downloading them
+				for cachedir in "../../cachedir/" "cachedir/"
+				do
+					[ -f "$cachedir/$pkg" ] \
+						&& cp $cachedir/$pkg $resultdir/
+				done
+				# download them if they are not injected from cache
+				[ -f "$resultdir/$pkg" ] \
+					|| 	wget -P $resultdir/ -cnv "$repo_url""$pkg"
+				[ -f "$resultdir/$pkg" ]
+				echo "download done."
+
+			done < <(
+				list_pkgs_in_repo_url "$repo_url" "$rpm_version"
+			)
+			[ -n "$( find $resultdir/ -name '*.rpm' )" ]
+		}
+
+		echo "mirroring packages from repository"
+		echo "  repo: $PIPEBUILD_REPO_URL"
+		echo "  version: $PIPEBUILD_RPM_VERSION"
+		getmatching_from_repo "$PIPEBUILD_REPO_URL" "$PIPEBUILD_RPM_VERSION"
+
+		ls $resultdir/*.rpm
 		;;
 	*)
 		echo "Build method not detected or specified"
@@ -466,6 +551,20 @@ echo ":::::"
 echo ":::::"
 
 find repo/
+
+echo ":::::"
+echo ":::::"
+echo ":::::"
+
+if [ -n "$SYNC_TRG_SERVER" -a -n "$SYNC_TRG_PATH" -a -n "$name" ]
+then
+	# some sanity check
+	echo "$name" | grep '/' && exit 1
+	echo "$name" | grep '\.\.' && exit 1
+
+	echo "Syncing repo to: $SYNC_TRG_SERVER:$SYNC_TRG_PATH/$name/"
+	rsync -ave ssh repo/ "$SYNC_TRG_SERVER":"$SYNC_TRG_PATH"/"$name"/
+fi
 
 echo ":::::"
 echo "::::: DONE"

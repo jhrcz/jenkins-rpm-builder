@@ -20,3 +20,6 @@ GPG_KEY_EL5="GPG KEY FOR EL5 SIGNING"
 # default mock builders
 #MOCK_BUILDER_EL6_DEFAULT="epel-6-x86_64"
 #MOCK_BUILDER_EL5_DEFAULT="epel-5-x86_64"
+
+#SYNC_TRG_SERVER="user@server"
+#SYNC_TRG_PATH="building/tmp"

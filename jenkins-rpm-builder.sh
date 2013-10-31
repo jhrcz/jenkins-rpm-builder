@@ -398,6 +398,7 @@ case $BUILDER in
 		rpmarch=noarch
 		#rpmarch=${MOCK_BUILDER##*-}
 		rpmout=$(head -n1 .fpm.name)-$(head -n1 .fpm.version)$([ -f .fpm.iteration ] && echo -n "-" && head -n1 .fpm.iteration || true)$([ -f .fpm.iteration ] && echo -n "$pkg_dist_suffix")-${rpmarch}.rpm
+		name="$(head -n1 .fpm.name)"
 		
 		echo ":::::"
 		echo "::::: fpm params: $FPM_PARAMS"

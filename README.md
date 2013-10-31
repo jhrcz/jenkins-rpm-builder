@@ -55,3 +55,9 @@ when using tag parameter and having .spec.in in repository source root, it is us
 wrapper could be used for building snapshot packages on packagers machine too. then not all the changes must be pushed to the upstream repo, they must be only localy commited.
 
 currently the tool is used for building of rpm itself
+
+for using upstream urls for downloading sources from github on centos 6.x, it's required to have spectool's wget configured to use content-disposition header"
+```
+#/etc/fedora/wgetrc 
+content-disposition = on
+```

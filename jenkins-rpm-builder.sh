@@ -433,7 +433,8 @@ case $BUILDER in
 			# links has to much differences in parametrs support betwen rhel/fedora to keep it in sync
 			#links -dump -http-proxy "${http_proxy##http://}" -no-numbering -no-references  "$repo_url" | grep -o '[^ ]*'"$rpm_version"'[^ ]*.rpm'
 			#links -dump -http-proxy "${http_proxy##http://}" "$repo_url" | grep -o '[^ ]*'"$rpm_version"'[^ ]*.rpm'
-			curl -s "$repo_url" | grep -o '>[^ ]*.rpm<' | tr -d "<>" | grep -o '[^ ]*'"$rpm_version"'[^ ]*.rpm'
+			#curl -s "$repo_url" | grep -o '>[^ ]*.rpm<' | tr -d "<>" | grep -o '[^ "]*'"$rpm_version"'[^ "]*.rpm'
+			curl -s "$repo_url" | grep -o '>[^ "]*'"$rpm_version"'[^ "]*.rpm<' | tr -d '<>'
 		}
 
 		function getmatching_from_repo

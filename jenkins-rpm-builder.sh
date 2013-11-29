@@ -326,7 +326,7 @@ case $BUILDER in
 		fi
 
 		rm -f SRPMS/*.src.rpm
-		rpmbuild -bs --define '%_topdir '"`pwd`" --define '%_sourcedir %{_topdir}' --define "%dist $pkg_dist_suffix" *.spec
+		rpmbuild -bs --define '%_topdir '"`pwd`" --define '%_sourcedir %{_topdir}' --define "%dist $pkg_dist_suffix" --define "_source_filedigest_algorithm md5" --define "_binary_filedigest_algorithm md5" *.spec
 		#sample output: Wrote: /tmp/rctc-repo/SRPMS/rctc-1.10-0.el6.src.rpm
 
 		echo ":::::"

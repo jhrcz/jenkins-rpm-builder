@@ -326,14 +326,14 @@ case $BUILDER in
 		fi
 
 		rm -f SRPMS/*.src.rpm
-		rpmbuild -bs --define '%_topdir '"`pwd`" --define '%_sourcedir %{_topdir}' --define "%dist $pkg_dist_suffix" *.spec
+		rpmbuild -bs --define '%_topdir '"`pwd`" --define '%_sourcedir %{_topdir}' --define "%dist $pkg_dist_suffix" --define "_source_filedigest_algorithm md5" --define "_binary_filedigest_algorithm md5" *.spec
 		#sample output: Wrote: /tmp/rctc-repo/SRPMS/rctc-1.10-0.el6.src.rpm
 
 		echo ":::::"
 		echo "::::: building in mock"
 		echo ":::::"
 		# build
-		eval $mock_cmd ${KEEP_MOCK_ENV:+--no-cleanup-after} --resultdir \"$resultdir\" -D \"dist $pkg_dist_suffix\" SRPMS/*.src.rpm
+		eval $mock_cmd -r $MOCK_BUILDER ${KEEP_MOCK_ENV:+--no-cleanup-after} --resultdir \"$resultdir\" -D \"dist $pkg_dist_suffix\" SRPMS/*.src.rpm
 		;;
 	tito)
 		# override path to use mock from /usr/bin and not /usr/sbin
@@ -433,7 +433,8 @@ case $BUILDER in
 			# links has to much differences in parametrs support betwen rhel/fedora to keep it in sync
 			#links -dump -http-proxy "${http_proxy##http://}" -no-numbering -no-references  "$repo_url" | grep -o '[^ ]*'"$rpm_version"'[^ ]*.rpm'
 			#links -dump -http-proxy "${http_proxy##http://}" "$repo_url" | grep -o '[^ ]*'"$rpm_version"'[^ ]*.rpm'
-			curl -s "$repo_url" | grep -o '>[^ ]*.rpm<' | tr -d "<>" | grep -o '[^ ]*'"$rpm_version"'[^ ]*.rpm'
+			#curl -s "$repo_url" | grep -o '>[^ ]*.rpm<' | tr -d "<>" | grep -o '[^ "]*'"$rpm_version"'[^ "]*.rpm'
+			curl -s "$repo_url" | grep -o '>[^ "]*'"$rpm_version"'[^ "]*.rpm<' | tr -d '<>'
 		}
 
 		function getmatching_from_repo

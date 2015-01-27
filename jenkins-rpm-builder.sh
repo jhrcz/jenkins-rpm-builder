@@ -567,6 +567,17 @@ then
 	rsync -ave ssh repo/ "$SYNC_TRG_SERVER":"$SYNC_TRG_PATH"/"$name"/
 fi
 
+if [ -n "$SYNC_TRG_SERVER" -a -n "$SYNC_TRG_POSTHOOK" -a -n "$name" ]
+then
+	# some sanity check
+	echo "$name" | grep '/' && exit 1
+	echo "$name" | grep '\.\.' && exit 1
+
+	echo "Running hook: $SYNC_TRG_SERVER:$SYNC_TRG_POSTHOOK $name"
+	ssh "$SYNC_TRG_SERVER" bash -ls <<< "$SYNC_TRG_PATH" "$name"
+fi
+
+
 echo ":::::"
 echo "::::: DONE"
 echo ":::::"

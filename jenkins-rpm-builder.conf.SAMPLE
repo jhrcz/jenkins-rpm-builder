@@ -23,3 +23,4 @@ GPG_KEY_EL5="GPG KEY FOR EL5 SIGNING"
 
 #SYNC_TRG_SERVER="user@server"
 #SYNC_TRG_PATH="building/tmp"
+#SYNC_TRG_POSTHOOK="/root/building/tmp/make.sh"
